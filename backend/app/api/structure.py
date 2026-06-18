@@ -297,3 +297,154 @@ async def batch_info(smiles_list: List[str]):
         info = get_mol_info(smiles.strip())
         results.append(info)
     return results
+
+
+# ========== 3D 结构端点 ==========
+
+class Smiles3DRequest(BaseModel):
+    smiles: str
+
+
+class PubChem3DRequest(BaseModel):
+    name: str
+
+
+class SDF3DResult(BaseModel):
+    sdf: str
+    smiles: Optional[str] = None
+    formula: Optional[str] = None
+    info: Optional[dict] = None
+
+
+@router.post("/3d", response_model=SDF3DResult)
+async def get_3d_structure(request: Smiles3DRequest):
+    """
+    从 SMILES 生成 3D SDF 结构
+
+    Args:
+        smiles: SMILES 字符串
+
+    Returns:
+        3D SDF 数据
+    """
+    try:
+        smiles = request.smiles.strip()
+        if not smiles:
+            raise HTTPException(status_code=400, detail="Empty SMILES")
+
+        from ..core.rdkit_engine import rdkit_engine
+        from ..core.molecule_renderer import molecule_renderer
+
+        # 验证 SMILES
+        if not rdkit_engine.validate_smiles(smiles):
+            raise HTTPException(status_code=400, detail="Invalid SMILES")
+
+        # 生成 3D SDF
+        sdf = molecule_renderer.smiles_to_3d_sdf(smiles)
+        if sdf is None:
+            raise HTTPException(status_code=500, detail="Failed to generate 3D structure")
+
+        # 获取分子信息
+        info = rdkit_engine.get_mol_info(smiles)
+        canonical = rdkit_engine.get_canonical_smiles(smiles)
+
+        return SDF3DResult(
+            sdf=sdf,
+            smiles=canonical,
+            formula=info.get('formula', ''),
+            info={
+                'formula': info.get('formula', ''),
+                'molecular_weight': info.get('molecular_weight', 0),
+                'num_atoms': info.get('num_atoms', 0),
+                'num_bonds': info.get('num_bonds', 0),
+                'num_rings': info.get('num_rings', 0),
+                'is_aromatic': info.get('is_aromatic', False)
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/pubchem/3d")
+async def get_pubchem_3d(request: PubChem3DRequest):
+    """
+    从 PubChem 获取化合物 3D 结构
+
+    Args:
+        name: 化合物名称（英文）
+
+    Returns:
+        3D SDF 数据 + 化合物信息
+    """
+    try:
+        name = request.name.strip()
+        if not name:
+            raise HTTPException(status_code=400, detail="Empty compound name")
+
+        from ..core.pubchem_api import pubchem_api
+
+        # 搜索化合物
+        compound = pubchem_api.search_by_name(name)
+        if compound is None:
+            raise HTTPException(status_code=404, detail=f"Compound not found: {name}")
+
+        # 获取 3D 结构
+        sdf = pubchem_api.get_3d_structure(compound.cid)
+        if sdf is None:
+            raise HTTPException(status_code=404, detail="3D structure not available from PubChem")
+
+        return {
+            "sdf": sdf,
+            "name": compound.iupac_name or name,
+            "smiles": compound.smiles,
+            "formula": compound.molecular_formula,
+            "info": {
+                "formula": compound.molecular_formula,
+                "molecular_weight": compound.molecular_weight,
+                "iupac_name": compound.iupac_name,
+                "num_atoms": None,
+                "description": compound.description[:200] if compound.description else ""
+            }
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/pubchem/search/{name}")
+async def pubchem_search(name: str):
+    """
+    搜索 PubChem 化合物
+
+    Args:
+        name: 化合物名称
+
+    Returns:
+        化合物信息
+    """
+    try:
+        from ..core.pubchem_api import pubchem_api
+
+        compound = pubchem_api.search_by_name(name)
+        if compound is None:
+            raise HTTPException(status_code=404, detail=f"Compound not found: {name}")
+
+        return {
+            "cid": compound.cid,
+            "name": compound.iupac_name or name,
+            "smiles": compound.smiles,
+            "formula": compound.molecular_formula,
+            "molecular_weight": compound.molecular_weight,
+            "description": compound.description[:200] if compound.description else "",
+            "synonyms": compound.synonyms[:5] if compound.synonyms else []
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

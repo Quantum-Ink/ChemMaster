@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initFormulaSection();
     initEquationSection();
     initBatchSection();
-    initStructureEditor();
+    initMoleculeCanvas();
+    initMoleculeViewer();
 });
 
 /**
@@ -465,23 +466,24 @@ function initBatchSection() {
 }
 
 /**
- * 初始化结构编辑器
+ * 初始化 Canvas 分子结构编辑器
  */
-function initStructureEditor() {
-    // 检查容器是否存在
-    const container = document.getElementById('structure-editor-container');
+function initMoleculeCanvas() {
+    const container = document.getElementById('molecule-canvas-container');
     if (!container) return;
 
-    // 创建结构编辑器实例
-    window.structureEditor = new StructureEditor('structure-editor-container', {
-        apiBaseUrl: '/api/structure',
-        width: 800,
-        height: 600,
-        showCommonStructures: true,
-        showPreview: true,
-        onStructureChange: (smiles) => {
-            console.log('Structure changed:', smiles);
-        }
+    window.moleculeCanvas = new MoleculeCanvas('molecule-canvas-container');
+}
+
+/**
+ * 初始化 3D 分子可视化器
+ */
+function initMoleculeViewer() {
+    const container = document.getElementById('molecule-viewer-container');
+    if (!container) return;
+
+    window.moleculeViewer = new MoleculeViewer('molecule-viewer-container', {
+        apiBaseUrl: '/api/structure'
     });
 }
 

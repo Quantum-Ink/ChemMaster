@@ -361,6 +361,7 @@
             <button class="nav-tab active" data-tab="formula">化学式转换</button>
             <button class="nav-tab" data-tab="equation">反应方程式</button>
             <button class="nav-tab" data-tab="structure">结构绘制</button>
+            <button class="nav-tab" data-tab="viewer3d">分子可视化</button>
             <button class="nav-tab" data-tab="batch">批量处理</button>
         </nav>
 
@@ -472,7 +473,14 @@
             <!-- 结构绘制 -->
             <section class="tab-content" id="structure-tab">
                 <div class="structure-section">
-                    <div id="structure-editor-container"></div>
+                    <div id="molecule-canvas-container"></div>
+                </div>
+            </section>
+
+            <!-- 分子可视化 -->
+            <section class="tab-content" id="viewer3d-tab">
+                <div class="structure-section">
+                    <div id="molecule-viewer-container"></div>
                 </div>
             </section>
 
@@ -525,6 +533,8 @@ H2 + O2 -> H2O"></textarea>
     <script src="plugins/word.js"></script>
     <script src="plugins/latex.js"></script>
     <script src="plugins.js"></script>
+    <script src="molecule-canvas.js"></script>
+    <script src="molecule-viewer.js"></script>
     <script src="structure-editor.js"></script>
     <script src="editor.js"></script>
 </body>

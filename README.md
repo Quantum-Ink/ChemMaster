@@ -1,6 +1,6 @@
 # 🧪 ChemMaster
 
-**AI 驱动的化学方程式编辑器** — 支持化学式解析、方程式平衡、LaTeX 导出和 Microsoft Word 集成。
+**AI 驱动的化学方程式编辑器** — 支持化学式解析、方程式平衡、有机物结构绘制、分子 3D 可视化、LaTeX 导出和 Microsoft Word 集成。
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.68+-green.svg)](https://fastapi.tiangolo.com)
@@ -30,8 +30,29 @@
 - Unicode 下标格式直接粘贴
 - HTML/RTF 格式导出
 
+### 🎨 有机物结构绘制
+- Canvas 画布式编辑器，参考 GeoGebra 简洁模式
+- 原子工具：C / N / O / S / P / F / Cl / Br / I / H
+- 键型工具：单键 / 双键 / 三键
+- 常用模板：苯环、环己烷、环戊烷、羟基、羧基、氨基、醛基、硝基
+- 拖拽绘制：点击放置原子，拖拽创建化学键
+- 自动校准键角（120° / 109.5° / 180°）
+- 实时 SMILES 输出 + 分子式 / 分子量计算
+- 导出 SVG / PNG 图片
+- 撤销 / 重做支持（Ctrl+Z / Ctrl+Y）
+
+### 🔬 分子 3D 可视化
+- 基于 3Dmol.js 的 WebGL 3D 分子查看器，参考 Mercury 软件
+- 多种显示模式：球棍模型、空间填充（CPK）、棍棒模型、线框模型
+- 鼠标交互：旋转、缩放、平移
+- 输入方式：SMILES 字符串 / 化合物英文名称 / SDF 文件上传
+- PubChem 数据库集成：输入化合物名称自动加载 3D 结构
+- 功能切换：自动旋转、氢原子显示、原子标签、分子表面
+- CPK 标准元素配色方案
+- PNG 截图导出
+
 ### 🔬 化学数据库查询
-- PubChem API 集成（规划中）
+- PubChem API 集成
 - 化合物信息检索
 - 分子结构可视化
 
@@ -46,6 +67,9 @@ ChemMaster/
 │   ├── index.html              # 主页面
 │   ├── editor.js               # 编辑器逻辑
 │   ├── canvas.js               # 画布组件
+│   ├── molecule-canvas.js      # Canvas 分子结构编辑器
+│   ├── molecule-viewer.js      # 3D 分子可视化器
+│   ├── structure-editor.js     # SMILES 结构编辑器
 │   ├── plugins.js              # 插件管理系统
 │   └── style.css               # 样式文件
 │
@@ -54,11 +78,15 @@ ChemMaster/
 │   │   ├── api/                # API 端点
 │   │   │   ├── export.py       # 导出接口
 │   │   │   ├── reaction.py     # 反应接口
+│   │   │   ├── structure.py    # 结构接口 (含 3D / PubChem)
 │   │   │   └── editor.py       # 编辑器接口
 │   │   ├── core/               # 核心模块
 │   │   │   ├── chemistry.py    # 化学式解析
 │   │   │   ├── reaction_engine.py  # 方程式平衡
 │   │   │   ├── rdkit_engine.py # RDKit 集成
+│   │   │   ├── molecule_renderer.py # 分子渲染器 (2D/3D)
+│   │   │   ├── pubchem_api.py  # PubChem API 集成
+│   │   │   ├── equation_enhancer.py # 方程式增强
 │   │   │   └── smiles.py       # SMILES 支持
 │   │   └── plugins/            # 插件实现
 │   │       ├── word_plugin.py  # Word 导出
@@ -137,6 +165,13 @@ python tests/test_chemistry.py
 | `POST /api/export/latex/formula` | POST | LaTeX 格式化学式 |
 | `POST /api/export/latex/equation` | POST | LaTeX 格式方程式 |
 | `POST /api/export/latex/document` | POST | 生成 LaTeX 文档 |
+| `POST /api/structure/validate` | POST | 验证 SMILES |
+| `POST /api/structure/info` | POST | 获取分子信息 |
+| `POST /api/structure/render/svg` | POST | 渲染 SVG 结构图 |
+| `POST /api/structure/render/png` | POST | 渲染 PNG 结构图 |
+| `POST /api/structure/3d` | POST | 生成 3D SDF 结构 |
+| `POST /api/structure/pubchem/3d` | POST | PubChem 3D 结构查询 |
+| `GET /api/structure/pubchem/search/{name}` | GET | PubChem 化合物搜索 |
 
 ### 请求示例
 
@@ -220,6 +255,19 @@ const batch = await wordPlugin.processBatch([
   'H2 + O2 -> H2O',
   'Na + H2O -> NaOH + H2'
 ]);
+
+// Canvas 分子编辑器
+const canvas = new MoleculeCanvas('canvas-container');
+canvas.placeTemplate('benzene');  // 放置苯环模板
+console.log(canvas.getSmiles());  // 输出 SMILES
+console.log(canvas.getFormula()); // 输出分子式
+
+// 3D 分子可视化
+const viewer = new MoleculeViewer('viewer-container', {
+    apiBaseUrl: '/api/structure'
+});
+await viewer.loadMolecule('CC(=O)Oc1ccccc1C(=O)O');  // 阿司匹林 SMILES
+await viewer.loadMolecule('aspirin');  // 或使用英文名称
 ```
 
 ---
@@ -230,15 +278,18 @@ const batch = await wordPlugin.processBatch([
 - **Python 3.8+** — 主要编程语言
 - **FastAPI** — Web 框架
 - **NumPy** — 矩阵运算（方程式平衡）
-- **RDKit** — 化学信息学（可选）
+- **RDKit** — 化学信息学（分子处理、2D/3D 渲染）
+- **Pillow** — 图像处理
 
 ### 前端
 - **HTML/CSS/JavaScript** — 基础技术
+- **Canvas API** — 分子结构画布编辑器
+- **3Dmol.js** — WebGL 3D 分子可视化
 - **Office.js** — Microsoft Office 集成
 - **KaTeX/MathJax** — LaTeX 预览（可选）
 
 ### 化学数据库
-- **PubChem API** — 化合物信息查询
+- **PubChem API** — 化合物信息查询、3D 结构获取
 - **SMILES** — 分子结构表示
 
 ---
@@ -320,11 +371,10 @@ python tests/test_chemistry.py
 - [x] Word 导出插件
 - [x] Office Add-in 基础框架
 - [x] REST API 端点
-
-### 进行中 🚧
-- [ ] 化学数据库集成（PubChem）
-- [ ] 有机物结构绘制
-- [ ] 分子可视化
+- [x] 有机物结构绘制（Canvas 画布编辑器）
+- [x] 分子 3D 可视化（3Dmol.js）
+- [x] PubChem API 集成（化合物查询 + 3D 结构）
+- [x] 矢量图输出（SVG / PNG）
 
 ### 规划中 📋
 - [ ] AI 自然语言转方程式
@@ -372,6 +422,7 @@ python tests/test_chemistry.py
 - [FastAPI](https://fastapi.tiangolo.com/) — 高性能 Web 框架
 - [NumPy](https://numpy.org/) — 科学计算库
 - [RDKit](https://www.rdkit.org/) — 化学信息学工具包
+- [3Dmol.js](https://3dmol.org/) — WebGL 3D 分子可视化
 - [PubChem](https://pubchem.ncbi.nlm.nih.gov/) — 化学数据库
 - [mhchem](https://ctan.org/pkg/mhchem) — LaTeX 化学式包
 
