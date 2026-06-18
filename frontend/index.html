@@ -47,6 +47,7 @@
             justify-content: center;
             gap: 15px;
             margin-bottom: 30px;
+            flex-wrap: wrap;
         }
 
         .nav-tab {
@@ -304,6 +305,54 @@
             padding: 30px;
         }
 
+        /* 离子方程式页面 */
+        .ion-section {
+            padding: 30px;
+        }
+
+        .ion-result {
+            margin-top: 20px;
+        }
+
+        .ion-result-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .ion-result-item h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .ion-result-item .value {
+            font-size: 20px;
+            font-family: 'Times New Roman', serif;
+            color: #333;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .spectator-ions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .spectator-ion {
+            padding: 4px 12px;
+            background: #fff3cd;
+            color: #856404;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
         /* 批量处理页面 */
         .batch-section {
             padding: 30px;
@@ -353,13 +402,14 @@
         <!-- 头部 -->
         <header class="app-header">
             <h1>🧪 ChemMaster</h1>
-            <p>AI 驱动的化学式编辑器 - 支持化学式转换、方程式平衡、结构绘制</p>
+            <p>AI 驱动的化学式编辑器 - 支持化学式转换、方程式平衡、离子方程式、结构绘制</p>
         </header>
 
         <!-- 导航标签 -->
         <nav class="nav-tabs">
             <button class="nav-tab active" data-tab="formula">化学式转换</button>
             <button class="nav-tab" data-tab="equation">反应方程式</button>
+            <button class="nav-tab" data-tab="ion">离子方程式</button>
             <button class="nav-tab" data-tab="structure">结构绘制</button>
             <button class="nav-tab" data-tab="viewer3d">分子可视化</button>
             <button class="nav-tab" data-tab="batch">批量处理</button>
@@ -465,6 +515,72 @@
                             <span class="chip" data-equation="Na + H2O -> NaOH + H2">钠与水反应</span>
                             <span class="chip" data-equation="CH4 + O2 -> CO2 + H2O">甲烷燃烧</span>
                             <span class="chip" data-equation="HCl + NaOH -> NaCl + H2O">中和反应</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 离子方程式 -->
+            <section class="tab-content" id="ion-tab">
+                <div class="ion-section">
+                    <div class="input-group">
+                        <label for="ion-input">输入方程式（分子方程式或离子方程式）</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="ion-input"
+                                   placeholder="例如: NaOH + HCl -> NaCl + H2O 或 H+ + OH- -> H2O">
+                            <button id="ion-analyze-btn" class="btn btn-primary">分析</button>
+                            <button id="ion-balance-btn" class="btn btn-secondary">配平离子方程式</button>
+                            <button id="ion-clear-btn" class="btn btn-outline">清除</button>
+                        </div>
+                        <div id="ion-status" class="status-message"></div>
+                    </div>
+
+                    <!-- 分析结果 -->
+                    <div class="ion-result" id="ion-result" style="display: none;">
+                        <!-- 分子方程式 → 离子方程式 -->
+                        <div class="ion-result-item" id="ion-molecular-result" style="display: none;">
+                            <h4>📝 分子方程式</h4>
+                            <div class="value" id="ion-balanced-molecular"></div>
+                        </div>
+
+                        <div class="ion-result-item" id="ion-full-ionic-result" style="display: none;">
+                            <h4>🔬 完整离子方程式</h4>
+                            <div class="value" id="ion-full-ionic"></div>
+                        </div>
+
+                        <div class="ion-result-item" id="ion-net-ionic-result" style="display: none;">
+                            <h4>⚡ 净离子方程式</h4>
+                            <div class="value" id="ion-net-ionic"></div>
+                        </div>
+
+                        <div class="ion-result-item" id="ion-spectator-result" style="display: none;">
+                            <h4>👀 旁观离子</h4>
+                            <div class="spectator-ions" id="ion-spectator-ions"></div>
+                        </div>
+
+                        <!-- 离子方程式配平结果 -->
+                        <div class="ion-result-item" id="ion-balance-result" style="display: none;">
+                            <h4>⚖️ 配平结果</h4>
+                            <div class="value" id="ion-balanced-equation"></div>
+                        </div>
+
+                        <div class="ion-result-item" id="ion-charge-result" style="display: none;">
+                            <h4>🔋 电荷守恒验证</h4>
+                            <div class="value" id="ion-charge-info"></div>
+                        </div>
+                    </div>
+
+                    <div class="examples-section">
+                        <h4>示例：</h4>
+                        <div class="example-chips">
+                            <span class="chip" data-ion="NaOH + HCl -> NaCl + H2O">中和反应</span>
+                            <span class="chip" data-ion="Na2SO4 + BaCl2 -> BaSO4 + 2NaCl">沉淀反应</span>
+                            <span class="chip" data-ion="Na2CO3 + 2HCl -> 2NaCl + H2O + CO2">酸与碳酸盐</span>
+                            <span class="chip" data-ion="Fe + CuSO4 -> FeSO4 + Cu">置换反应</span>
+                            <span class="chip" data-ion="H+ + OH- -> H2O">离子中和</span>
+                            <span class="chip" data-ion="Ag+ + Cl- -> AgCl">银离子沉淀</span>
+                            <span class="chip" data-ion="Fe + Cu^2+ -> Fe^2+ + Cu">离子置换</span>
+                            <span class="chip" data-ion="MnO4- + H+ + Fe^2+ -> Mn^2+ + Fe^3+ + H2O">氧化还原</span>
                         </div>
                     </div>
                 </div>

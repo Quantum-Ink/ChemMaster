@@ -41,6 +41,18 @@
 - 支持多种反应类型
 - 示例：`Fe + O2 -> Fe2O3` → `4Fe + 3O2 -> 2Fe2O3`
 
+### 🧪 离子方程式
+- **离子解析** — 支持 H+, OH-, SO4^2-, Fe3+ 等离子格式
+- **离子方程式配平** — 同时满足原子守恒和电荷守恒
+- **分子方程式→离子方程式** — 自动拆分强电解质（强酸、强碱、可溶盐）
+- **旁观离子检测** — 自动识别不参与反应的离子
+- **净离子方程式生成** — 移除旁观离子，得到净反应
+- **强电解质表** — 内置 50+ 种常见强电解质的离解映射
+- 示例：
+  - `NaOH + HCl -> NaCl + H2O` → 净离子方程式：`H+ + OH- = H2O`
+  - `Na2SO4 + BaCl2 -> BaSO4 + 2NaCl` → 净离子方程式：`Ba^2+ + SO4^2- = BaSO4`
+  - `Fe + Cu^2+ -> Fe^2+ + Cu`（直接配平离子方程式）
+
 ### 🎨 有机物结构绘制
 - Canvas 画布式编辑器，参考 GeoGebra 简洁模式
 - 原子工具：C / N / O / S / P / F / Cl / Br / I / H
@@ -100,10 +112,12 @@ ChemMaster/
 │   │   │   ├── editor.py            # 编辑器接口
 │   │   │   ├── export.py            # 导出接口（LaTeX/Word）
 │   │   │   ├── structure.py         # 结构接口（含 3D/PubChem）
-│   │   │   └── data.py              # 数据管理接口（元素/化合物/缓存）
+│   │   │   ├── data.py              # 数据管理接口（元素/化合物/缓存）
+│   │   │   └── ion.py               # 离子方程式接口（配平/转换/分析）
 │   │   ├── core/                    # 核心模块
 │   │   │   ├── chemistry.py         # 化学式解析器
 │   │   │   ├── reaction_engine.py   # 方程式平衡器（矩阵法）
+│   │   │   ├── ion_engine.py        # 离子方程式引擎（配平/转换/分析）
 │   │   │   ├── rdkit_engine.py      # RDKit 集成（SMILES/SVG/PNG）
 │   │   │   ├── molecule_renderer.py # 分子渲染器（2D/3D）
 │   │   │   ├── pubchem_api.py       # PubChem API 客户端
@@ -239,6 +253,10 @@ python scripts/build.py
 | `POST /api/structure/3d` | POST | 生成 3D SDF 结构 |
 | `POST /api/structure/pubchem/3d` | POST | PubChem 3D 结构查询 |
 | `GET /api/structure/pubchem/search/{name}` | GET | PubChem 化合物搜索 |
+| `POST /api/ion/balance` | POST | 配平离子方程式 |
+| `POST /api/ion/convert` | POST | 分子方程式→离子方程式 |
+| `POST /api/ion/analyze` | POST | 分析方程式中的离子 |
+| `GET /api/ion/info/{ion}` | GET | 获取离子信息 |
 
 ### 数据管理端点
 
@@ -385,6 +403,7 @@ class MyPlugin(ChemPlugin):
 ### 已完成 ✅
 - [x] 化学式解析器
 - [x] 方程式平衡器
+- [x] 离子方程式（配平/转换/分析/旁观离子检测）
 - [x] LaTeX / Word 导出
 - [x] REST API 端点
 - [x] 有机物结构绘制（Canvas）
@@ -398,7 +417,6 @@ class MyPlugin(ChemPlugin):
 
 ### 规划中 📋
 - [ ] AI 自然语言转方程式
-- [ ] 离子方程式支持
 - [ ] 反应类型分类
 - [ ] PDF 导出
 - [ ] 协作编辑

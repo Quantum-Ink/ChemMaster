@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initFormulaSection();
     initEquationSection();
+    initIonSection();
     initBatchSection();
     initMoleculeCanvas();
     initMoleculeViewer();
@@ -362,6 +363,166 @@ async function exportEquationLatex(equation) {
         showStatus(document.getElementById('equation-status'), '已导出 LaTeX 文件', 'success');
     } catch (error) {
         showStatus(document.getElementById('equation-status'), `导出失败: ${error.message}`, 'error');
+    }
+}
+
+/**
+ * 初始化离子方程式部分
+ */
+function initIonSection() {
+    const input = document.getElementById('ion-input');
+    const analyzeBtn = document.getElementById('ion-analyze-btn');
+    const balanceBtn = document.getElementById('ion-balance-btn');
+    const clearBtn = document.getElementById('ion-clear-btn');
+    const status = document.getElementById('ion-status');
+
+    // 示例点击
+    document.querySelectorAll('#ion-tab .chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            input.value = chip.dataset.ion;
+            analyzeIon();
+        });
+    });
+
+    // 分析按钮
+    analyzeBtn.addEventListener('click', analyzeIon);
+
+    // 配平按钮
+    balanceBtn.addEventListener('click', balanceIon);
+
+    // 输入框回车
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            analyzeIon();
+        }
+    });
+
+    // 清除按钮
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        document.getElementById('ion-result').style.display = 'none';
+        hideStatus(status);
+    });
+}
+
+/**
+ * 分析离子方程式
+ */
+async function analyzeIon() {
+    const input = document.getElementById('ion-input');
+    const status = document.getElementById('ion-status');
+    const resultDiv = document.getElementById('ion-result');
+    const equation = input.value.trim();
+
+    if (!equation) {
+        showStatus(status, '请输入方程式', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/ion/analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ equation: equation })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || '分析失败');
+        }
+
+        const result = await response.json();
+
+        // 隐藏所有结果
+        document.querySelectorAll('.ion-result-item').forEach(el => el.style.display = 'none');
+
+        resultDiv.style.display = 'block';
+
+        if (result.type === 'molecular') {
+            // 分子方程式转换结果
+            document.getElementById('ion-molecular-result').style.display = 'block';
+            document.getElementById('ion-balanced-molecular').textContent = result.balanced_molecular;
+
+            document.getElementById('ion-full-ionic-result').style.display = 'block';
+            document.getElementById('ion-full-ionic').textContent = result.full_ionic;
+
+            document.getElementById('ion-net-ionic-result').style.display = 'block';
+            document.getElementById('ion-net-ionic').textContent = result.net_ionic;
+
+            if (result.spectator_ions && result.spectator_ions.length > 0) {
+                document.getElementById('ion-spectator-result').style.display = 'block';
+                const ionsDiv = document.getElementById('ion-spectator-ions');
+                ionsDiv.innerHTML = result.spectator_ions.map(ion =>
+                    `<span class="spectator-ion">${ion}</span>`
+                ).join('');
+            }
+
+            showStatus(status, '分析完成', 'success');
+        } else if (result.type === 'ionic') {
+            // 离子方程式配平结果
+            document.getElementById('ion-balance-result').style.display = 'block';
+            document.getElementById('ion-balanced-equation').textContent = result.balanced;
+
+            document.getElementById('ion-charge-result').style.display = 'block';
+            const chargeInfo = result.charge_balanced
+                ? `✅ 电荷守恒：反应物总电荷 ${result.reactant_charges} = 生成物总电荷 ${result.product_charges}`
+                : `❌ 电荷不守恒：反应物总电荷 ${result.reactant_charges} ≠ 生成物总电荷 ${result.product_charges}`;
+            document.getElementById('ion-charge-info').textContent = chargeInfo;
+
+            showStatus(status, '配平完成', 'success');
+        }
+    } catch (error) {
+        showStatus(status, `错误: ${error.message}`, 'error');
+    }
+}
+
+/**
+ * 配平离子方程式
+ */
+async function balanceIon() {
+    const input = document.getElementById('ion-input');
+    const status = document.getElementById('ion-status');
+    const resultDiv = document.getElementById('ion-result');
+    const equation = input.value.trim();
+
+    if (!equation) {
+        showStatus(status, '请输入离子方程式', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/ion/balance`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ equation: equation })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || '配平失败');
+        }
+
+        const result = await response.json();
+
+        // 隐藏所有结果
+        document.querySelectorAll('.ion-result-item').forEach(el => el.style.display = 'none');
+
+        resultDiv.style.display = 'block';
+
+        // 显示配平结果
+        document.getElementById('ion-balance-result').style.display = 'block';
+        document.getElementById('ion-balanced-equation').textContent = result.balanced;
+
+        // 显示电荷信息
+        document.getElementById('ion-charge-result').style.display = 'block';
+        const chargeInfo = result.charge_balanced
+            ? `✅ 电荷守恒：反应物总电荷 ${result.reactant_charges} = 生成物总电荷 ${result.product_charges}`
+            : `❌ 电荷不守恒：反应物总电荷 ${result.reactant_charges} ≠ 生成物总电荷 ${result.product_charges}`;
+        document.getElementById('ion-charge-info').textContent = chargeInfo;
+
+        showStatus(status, '配平完成', 'success');
+    } catch (error) {
+        showStatus(status, `错误: ${error.message}`, 'error');
     }
 }
 

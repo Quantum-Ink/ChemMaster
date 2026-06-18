@@ -15,6 +15,7 @@ from app.api.editor import router as editor
 from app.api.export import router as export
 from app.api.structure import router as structure
 from app.api.data import router as data
+from app.api.ion import router as ion
 from app.services.plugin_manager import plugin_manager
 from app.data.database import Database
 from app.data.seed_data import seed_database
@@ -77,6 +78,7 @@ app.include_router(editor)
 app.include_router(export)
 app.include_router(structure)
 app.include_router(data)
+app.include_router(ion)
 
 # ---- 静态文件服务 ----
 
