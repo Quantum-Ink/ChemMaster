@@ -48,59 +48,59 @@ def create_tray(app: "ChemMasterDesktop"):
 
     from .i18n import i18n
 
-    def on_show_window(icon, item):
-        """显示主窗口"""
-        if app.window:
-            app.window.show()
-            app.window.restore()
+    def _build_menu():
+        """根据当前语言构建菜单"""
+        def on_show_window(icon, item):
+            if app.window:
+                app.window.show()
+                app.window.restore()
 
-    def on_set_locale_zh(icon, item):
-        """切换到中文"""
-        i18n.set_locale("zh_CN")
-        app.notify_locale_change("zh_CN")
+        def on_set_locale_zh(icon, item):
+            i18n.set_locale("zh_CN")
+            app.notify_locale_change("zh_CN")
+            icon.menu = _build_menu()
 
-    def on_set_locale_en(icon, item):
-        """切换到英文"""
-        i18n.set_locale("en_US")
-        app.notify_locale_change("en_US")
+        def on_set_locale_en(icon, item):
+            i18n.set_locale("en_US")
+            app.notify_locale_change("en_US")
+            icon.menu = _build_menu()
 
-    def on_status(icon, item):
-        """显示状态通知"""
-        try:
-            import requests
-            resp = requests.get("http://127.0.0.1:18020/api/data/status", timeout=2)
-            data = resp.json()
-            db_stats = data.get("database", {})
-            msg = f"化合物: {db_stats.get('compounds', 0)} | 缓存: {db_stats.get('cache_entries', 0)}"
-            icon.notify(msg, "ChemMaster 状态")
-        except Exception:
-            icon.notify("服务运行中", "ChemMaster 状态")
+        def on_status(icon, item):
+            try:
+                import requests
+                resp = requests.get(f"http://127.0.0.1:{app.port}/api/data/status", timeout=2)
+                data = resp.json()
+                db_stats = data.get("database", {})
+                msg = i18n.t("tray.status_msg",
+                             compounds=db_stats.get('compounds', 0),
+                             cache=db_stats.get('cache_entries', 0))
+                icon.notify(msg, i18n.t("app.title"))
+            except Exception:
+                icon.notify(i18n.t("tray.status_running"), i18n.t("app.title"))
 
-    def on_quit(icon, item):
-        """退出应用"""
-        logger.info("Quitting application...")
-        icon.stop()
-        app.quit()
+        def on_quit(icon, item):
+            logger.info("Quitting application...")
+            icon.stop()
+            app.quit()
 
-    # 构建菜单
-    menu = pystray.Menu(
-        Item("显示主窗口", on_show_window, default=True),
-        pystray.Menu.SEPARATOR,
-        Item("语言 / Language", pystray.Menu(
-            Item("中文", on_set_locale_zh),
-            Item("English", on_set_locale_en),
-        )),
-        Item("状态", on_status),
-        pystray.Menu.SEPARATOR,
-        Item("退出", on_quit),
-    )
+        return pystray.Menu(
+            Item(i18n.t("tray.show_window"), on_show_window, default=True),
+            pystray.Menu.SEPARATOR,
+            Item(i18n.t("tray.language"), pystray.Menu(
+                Item("中文", on_set_locale_zh),
+                Item("English", on_set_locale_en),
+            )),
+            Item(i18n.t("tray.status"), on_status),
+            pystray.Menu.SEPARATOR,
+            Item(i18n.t("tray.quit"), on_quit),
+        )
 
     icon_image = create_tray_icon_image()
     icon = pystray.Icon(
         "ChemMaster",
         icon_image,
-        "ChemMaster - 化学式助手",
-        menu,
+        i18n.t("app.title"),
+        _build_menu(),
     )
 
     return icon
