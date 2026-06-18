@@ -217,5 +217,5 @@ structure_plugin = StructurePlugin()
 
 # 便捷函数
 def export_structure(smiles: str, format: str = "svg", **kwargs) -> Dict:
-    """导出化学结构"""
-    return structure_exporter.to_svg(smiles, **kwargs) if format == "svg" else structure_exporter.to_png(smiles, **kwargs)
+    """导出化学结构（支持 svg/png/latex/word/all 格式）"""
+    return structure_plugin.export(smiles, format, **kwargs)

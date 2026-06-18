@@ -1,26 +1,37 @@
-from fastapi import APIRouter
-from app.core.rdkit_engine import mol_info, mol_svg
-from app.core.chemistry import parse_formula
+"""
+ChemMaster 编辑器 API 端点
+提供化学式解析、分子信息查询和结构渲染功能
+"""
 
-router = APIRouter()
+from fastapi import APIRouter, HTTPException
 
-# ======================
-# 分子分析（V9）
-# ======================
-@router.get("/editor/analyze")
+from ..core.rdkit_engine import get_mol_info, smiles_to_svg, validate_smiles
+from ..core.chemistry import parse_formula
+
+router = APIRouter(prefix="/editor", tags=["editor"])
+
+
+@router.get("/analyze")
 def analyze(smiles: str):
-    return mol_info(smiles)
+    """分析分子结构，返回原子、键、分子量等信息"""
+    if not validate_smiles(smiles):
+        raise HTTPException(status_code=400, detail="Invalid SMILES")
+    return get_mol_info(smiles)
 
-# ======================
-# SVG结构（V8/V11）
-# ======================
-@router.get("/editor/svg")
+
+@router.get("/svg")
 def svg(smiles: str):
-    return {"svg": mol_svg(smiles)}
+    """将 SMILES 转换为 SVG 矢量图"""
+    result = smiles_to_svg(smiles)
+    if result is None:
+        raise HTTPException(status_code=400, detail="Failed to render SVG")
+    return {"svg": result}
 
-# ======================
-# 化学式解析（V1）
-# ======================
-@router.get("/editor/formula")
+
+@router.get("/formula")
 def formula(q: str):
-    return parse_formula(q)
+    """解析化学式，返回元素计数"""
+    try:
+        return parse_formula(q)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -9,7 +9,7 @@ from typing import Optional, List
 
 from ..core.chemistry import FormulaParser
 from ..core.reaction_engine import ReactionEngine
-from ..plugins.letax_plugin import LatexExporter
+from ..plugins.latex_plugin import LatexExporter
 from ..plugins.word_plugin import WordExporter
 
 router = APIRouter(prefix="/api/export", tags=["export"])
