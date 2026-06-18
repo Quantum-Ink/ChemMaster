@@ -3,11 +3,21 @@ ChemMaster RDKit 引擎模块
 提供化学结构处理、渲染和导出功能
 """
 
-from rdkit import Chem
-from rdkit.Chem import AllChem, rdDepictor
-from rdkit.Chem.Draw import rdMolDraw2D
+import logging
 import base64
 from typing import Optional, Dict, Any
+
+logger = logging.getLogger("chemmaster.rdkit")
+
+try:
+    from rdkit import Chem
+    from rdkit.Chem import AllChem, rdDepictor
+    from rdkit.Chem.Draw import rdMolDraw2D
+    RDKIT_AVAILABLE = True
+except ImportError:
+    RDKIT_AVAILABLE = False
+    logger.warning("RDKit not installed. Structure rendering features will be unavailable. "
+                   "Install with: pip install rdkit")
 
 
 class RDKitEngine:
@@ -15,7 +25,7 @@ class RDKitEngine:
 
     def __init__(self):
         """初始化 RDKit 引擎"""
-        pass
+        self.available = RDKIT_AVAILABLE
 
     def validate_smiles(self, smiles: str) -> bool:
         """
@@ -27,6 +37,8 @@ class RDKitEngine:
         Returns:
             是否有效
         """
+        if not self.available:
+            return False
         try:
             mol = Chem.MolFromSmiles(smiles)
             return mol is not None
@@ -43,6 +55,8 @@ class RDKitEngine:
         Returns:
             规范化的 SMILES，无效则返回 None
         """
+        if not self.available:
+            return None
         try:
             mol = Chem.MolFromSmiles(smiles)
             if mol is None:
@@ -61,6 +75,8 @@ class RDKitEngine:
         Returns:
             分子信息字典
         """
+        if not self.available:
+            return {"error": "RDKit not installed. Install with: pip install rdkit", "valid": False}
         try:
             mol = Chem.MolFromSmiles(smiles)
             if mol is None:
@@ -116,6 +132,8 @@ class RDKitEngine:
         Returns:
             SVG 字符串，失败返回 None
         """
+        if not self.available:
+            return None
         try:
             mol = Chem.MolFromSmiles(smiles)
             if mol is None:
@@ -134,7 +152,6 @@ class RDKitEngine:
             # 设置绘制选项
             drawer.drawOptions().addAtomIndices = show_atom_indices
             drawer.drawOptions().bondLineWidth = 2
-            drawer.drawOptions().fontSize = 16
 
             # 绘制分子
             drawer.DrawMolecule(mol)
@@ -160,6 +177,8 @@ class RDKitEngine:
         Returns:
             base64 编码的 PNG，失败返回 None
         """
+        if not self.available:
+            return None
         try:
             mol = Chem.MolFromSmiles(smiles)
             if mol is None:
@@ -195,6 +214,8 @@ class RDKitEngine:
         Returns:
             chemfig 代码，失败返回 None
         """
+        if not self.available:
+            return None
         try:
             mol = Chem.MolFromSmiles(smiles)
             if mol is None:
