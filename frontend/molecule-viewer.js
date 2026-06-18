@@ -468,14 +468,20 @@ class MoleculeViewer {
 
         this.showStatus('加载中...', '');
 
-        // 判断输入类型
-        const isSmiles = /[=\#\[\]\(\)@+\\\/]/.test(input) || input.length < 50;
+        // 判断输入类型：含 SMILES 特征字符 → SMILES，否则先试 SMILES 再试化合物名
+        const looksLikeSmiles = /[=\#\[\]\(\)@+\\\/]/.test(input);
 
         try {
-            if (isSmiles) {
+            if (looksLikeSmiles) {
                 await this.loadFromSmiles(input);
             } else {
-                await this.loadFromPubChem(input);
+                // 先尝试作为 SMILES
+                try {
+                    await this.loadFromSmiles(input);
+                } catch (e) {
+                    // SMILES 失败，降级为 PubChem 化合物名查询
+                    await this.loadFromPubChem(input);
+                }
             }
         } catch (error) {
             this.showStatus(`加载失败: ${error.message}`, 'error');
