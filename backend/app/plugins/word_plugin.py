@@ -6,6 +6,7 @@ ChemMaster Word 导出插件
 from typing import Dict, List, Optional
 from ..core.chemistry import FormulaParser, ReactionParser
 from ..core.reaction_engine import EquationBalancer, ReactionEngine
+from .base import ChemPlugin, PluginCategory, PluginEndpoint
 
 
 class WordExporter:
@@ -188,3 +189,32 @@ def export_equation_to_word(equation: str, balance: bool = True) -> Dict:
         'html': exporter.generate_html_content([equation], balance),
         'rtf': exporter.generate_rtf_content([equation], balance)
     }
+
+
+# ====== 标准插件类（继承 ChemPlugin） ======
+
+class WordPlugin(ChemPlugin):
+    """Word 导出插件（标准插件接口）"""
+
+    name = "word_export"
+    version = "1.0.0"
+    description = "将化学式和方程式导出为 Word 可用的 Unicode 下标格式"
+    category = PluginCategory.EXPORT
+
+    def __init__(self):
+        super().__init__()
+        self.exporter = WordExporter()
+
+    def initialize(self) -> bool:
+        return True
+
+    def get_endpoints(self) -> List[PluginEndpoint]:
+        return []  # 端点已在 export.py 中注册，此处不重复
+
+    def formula_to_word(self, formula: str) -> str:
+        """化学式转 Unicode 下标格式"""
+        return self.exporter.formula_to_word(formula)
+
+    def equation_to_word(self, equation: str, balance: bool = True) -> str:
+        """方程式转 Unicode 下标格式"""
+        return self.exporter.equation_to_word(equation, balance)

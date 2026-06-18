@@ -6,6 +6,7 @@ ChemMaster LaTeX 导出插件
 from typing import Dict, List, Optional
 from ..core.chemistry import FormulaParser, ReactionParser
 from ..core.reaction_engine import EquationBalancer, ReactionEngine
+from .base import ChemPlugin, PluginCategory, PluginEndpoint
 
 
 class LatexExporter:
@@ -191,3 +192,32 @@ def export_equation_to_latex(equation: str, package: str = "mhchem", balance: bo
         'balanced': balance,
         'usage': f'$${exporter.equation_to_latex(equation, package, balance)}$$'
     }
+
+
+# ====== 标准插件类（继承 ChemPlugin） ======
+
+class LatexPlugin(ChemPlugin):
+    """LaTeX 导出插件（标准插件接口）"""
+
+    name = "latex_export"
+    version = "1.0.0"
+    description = "将化学式和方程式导出为 LaTeX 格式（支持 mhchem 包）"
+    category = PluginCategory.EXPORT
+
+    def __init__(self):
+        super().__init__()
+        self.exporter = LatexExporter()
+
+    def initialize(self) -> bool:
+        return True
+
+    def get_endpoints(self) -> List[PluginEndpoint]:
+        return []  # 端点已在 export.py 中注册，此处不重复
+
+    def formula_to_latex(self, formula: str, package: str = "mhchem") -> str:
+        """化学式转 LaTeX"""
+        return self.exporter.formula_to_latex(formula, package)
+
+    def equation_to_latex(self, equation: str, package: str = "mhchem", balance: bool = True) -> str:
+        """方程式转 LaTeX"""
+        return self.exporter.equation_to_latex(equation, package, balance)

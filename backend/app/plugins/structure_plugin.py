@@ -12,6 +12,7 @@ from ..core.rdkit_engine import (
     smiles_to_png_base64,
     smiles_to_chemfig
 )
+from .base import ChemPlugin, PluginCategory, PluginEndpoint
 
 
 class StructureExporter:
@@ -219,3 +220,28 @@ structure_plugin = StructurePlugin()
 def export_structure(smiles: str, format: str = "svg", **kwargs) -> Dict:
     """导出化学结构（支持 svg/png/latex/word/all 格式）"""
     return structure_plugin.export(smiles, format, **kwargs)
+
+
+# ====== 标准插件类（继承 ChemPlugin） ======
+
+class StructureChemPlugin(ChemPlugin):
+    """化学结构导出插件（标准插件接口）"""
+
+    name = "structure_export"
+    version = "1.0.0"
+    description = "将化学结构导出为 SVG/PNG/LaTeX/Word 等多种格式"
+    category = PluginCategory.EXPORT
+
+    def __init__(self):
+        super().__init__()
+        self.exporter = StructureExporter()
+
+    def initialize(self) -> bool:
+        return True
+
+    def get_endpoints(self) -> List[PluginEndpoint]:
+        return []  # 端点已在 structure.py API 中注册，此处不重复
+
+    def export(self, smiles: str, format: str = "svg", **kwargs) -> Dict:
+        """导出化学结构"""
+        return structure_plugin.export(smiles, format, **kwargs)
