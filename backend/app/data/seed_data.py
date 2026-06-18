@@ -246,6 +246,13 @@ COMPOUNDS = [
     ("氯化亚铁", "Iron(II) Chloride", "FeCl2", "[Fe+2].[Cl-].[Cl-]", 126.751, "7758-94-3"),
     ("硫酸镁", "Magnesium Sulfate", "MgSO4", "[Mg+2].S(=O)(=O)[O-].[O-]", 120.368, "7487-88-9"),
     ("氯化镁", "Magnesium Chloride", "MgCl2", "[Mg+2].[Cl-].[Cl-]", 95.211, "7786-30-3"),
+    # 配合物
+    ("铁氰化钾(赤血盐)", "Potassium Ferricyanide", "K3[Fe(CN)6]", None, 329.244, "13746-66-2"),
+    ("亚铁氰化钾(黄血盐)", "Potassium Ferrocyanide", "K4[Fe(CN)6]", None, 368.346, "13943-58-3"),
+    ("硫酸四氨合铜", "Tetraamminecopper(II) Sulfate", "[Cu(NH3)4]SO4", None, 227.730, "14283-05-7"),
+    ("氯化二氨合银", "Diamminesilver(I) Chloride", "[Ag(NH3)2]Cl", None, 176.390, "23816-10-2"),
+    ("六氟合铝酸钠(冰晶石)", "Sodium Hexafluoroaluminate", "Na3[AlF6]", None, 209.940, "13775-53-6"),
+    ("六氨合钴(III)氯化物", "Hexaamminecobalt(III) Chloride", "[Co(NH3)6]Cl3", None, 267.475, "10534-89-1"),
 ]
 
 # ====== 常见反应方程式 ======
