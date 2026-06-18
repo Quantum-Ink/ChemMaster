@@ -55,13 +55,35 @@ class MoleculeCanvas {
             'F': 1, 'Cl': 1, 'Br': 1, 'I': 1, 'H': 1
         };
 
-        this.init();
+        // 延迟初始化：等待标签页可见后再创建画布
+        this._initialized = false;
+        this._onTabShown = (e) => {
+            if (e.detail.tabId === 'structure-tab' && !this._initialized) {
+                this._initialized = true;
+                this.init();
+            } else if (e.detail.tabId === 'structure-tab' && this._initialized) {
+                this.resize();
+            }
+        };
+        window.addEventListener('tab-shown', this._onTabShown);
     }
 
     init() {
         this.createUI();
         this.setupCanvas();
         this.bindEvents();
+        this.draw();
+    }
+
+    resize() {
+        const area = this.container.querySelector('.mol-canvas-area');
+        if (!area) return;
+        const rect = area.getBoundingClientRect();
+        if (rect.width < 10 || rect.height < 10) return;
+        this.canvas.width = rect.width;
+        this.canvas.height = rect.height;
+        this.offsetX = this.canvas.width / 2;
+        this.offsetY = this.canvas.height / 2;
         this.draw();
     }
 
