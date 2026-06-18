@@ -88,6 +88,11 @@
             display: block;
         }
 
+        /* 结构绘制 & 分子可视化：画布铺满 */
+        .tab-content.active:has(.structure-section) {
+            min-height: 60vh;
+        }
+
         /* 化学式转换页面 */
         .formula-section {
             padding: 30px;
@@ -376,7 +381,18 @@
 
         /* 结构编辑器页面 */
         .structure-section {
-            padding: 20px;
+            height: calc(100vh - 200px);
+            min-height: 500px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #molecule-canvas-container,
+        #molecule-viewer-container {
+            flex: 1;
+            min-height: 0;
+            position: relative;
         }
 
         /* 页脚 */
