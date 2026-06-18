@@ -5,6 +5,7 @@ from app.api.editor import router as editor
 from app.api.reaction import router as reaction
 from app.api.export import router as export
 from app.api.db import router as db
+from app.api.structure import router as structure
 
 app = FastAPI(title="ChemMaster V13 Unified Platform")
 
@@ -19,6 +20,7 @@ app.include_router(editor)
 app.include_router(reaction)
 app.include_router(export)
 app.include_router(db)
+app.include_router(structure)
 
 @app.get("/")
 def root():
