@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+eggs/
+*.whl
+
+# PyInstaller
+*.spec
+*.manifest
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Database (runtime generated)
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Claude Code
+.claude/
