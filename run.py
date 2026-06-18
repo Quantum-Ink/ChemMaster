@@ -58,7 +58,7 @@ def main():
             sys.exit(1)
 
         logger.info("Starting ChemMaster Desktop...")
-        app = ChemMasterDesktop(dev_mode=False)
+        app = ChemMasterDesktop(dev_mode=False, port=args.port)
         app.start()
 
 
