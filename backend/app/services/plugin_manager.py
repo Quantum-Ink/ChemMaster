@@ -67,7 +67,7 @@ class PluginManager:
             try:
                 # 动态导入模块
                 module = importlib.import_module(
-                    f"..plugins.{module_name}", package="app.services"
+                    f"..plugins.{module_name}", package="backend.app.services"
                 )
 
                 # 查找模块中所有 ChemPlugin 子类
