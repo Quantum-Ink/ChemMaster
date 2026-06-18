@@ -7,14 +7,30 @@ ChemMaster SQLite 数据库管理器
 import aiosqlite
 import logging
 import os
+import sys
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 
 logger = logging.getLogger("chemmaster.db")
 
-# 数据库文件路径（位于项目根目录）
-DB_DIR = Path(__file__).parent.parent.parent.parent
-DB_PATH = DB_DIR / "chemmaster.db"
+
+def _get_db_path() -> Path:
+    """
+    确定数据库文件路径
+    - PyInstaller 打包模式：数据库放在 exe 同级目录（可写、可持久化）
+    - 开发模式：数据库放在项目根目录
+    """
+    if getattr(sys, 'frozen', False):
+        # PyInstaller 打包模式：exe 所在目录
+        db_dir = Path(sys.executable).parent
+    else:
+        # 开发模式：项目根目录
+        db_dir = Path(__file__).parent.parent.parent.parent
+    db_dir.mkdir(parents=True, exist_ok=True)
+    return db_dir / "chemmaster.db"
+
+
+DB_PATH = _get_db_path()
 
 
 class Database:
