@@ -10,6 +10,14 @@ ChemMaster 统一启动入口
 import sys
 import argparse
 import logging
+import io
+
+# PyInstaller --windowed 模式下 sys.stdout/stderr 为 None
+# 必须在 uvicorn 初始化之前修复，否则日志格式化器会崩溃
+if sys.stdout is None:
+    sys.stdout = io.TextIOWrapper(io.BytesIO(), encoding='utf-8')
+if sys.stderr is None:
+    sys.stderr = io.TextIOWrapper(io.BytesIO(), encoding='utf-8')
 
 # 配置日志
 logging.basicConfig(
