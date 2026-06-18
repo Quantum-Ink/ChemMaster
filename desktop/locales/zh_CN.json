@@ -66,5 +66,12 @@
     "status.exported": "已导出",
 
     "footer.powered_by": "ChemMaster - AI 驱动的化学式编辑器",
-    "footer.github": "GitHub"
+    "footer.github": "GitHub",
+
+    "tray.show_window": "显示主窗口",
+    "tray.language": "语言 / Language",
+    "tray.status": "状态",
+    "tray.quit": "退出",
+    "tray.status_msg": "化合物: {compounds} | 缓存: {cache}",
+    "tray.status_running": "服务运行中"
 }
