@@ -66,5 +66,12 @@
     "status.exported": "Exported",
 
     "footer.powered_by": "ChemMaster - AI-Powered Chemistry Editor",
-    "footer.github": "GitHub"
+    "footer.github": "GitHub",
+
+    "tray.show_window": "Show Window",
+    "tray.language": "Language / 语言",
+    "tray.status": "Status",
+    "tray.quit": "Quit",
+    "tray.status_msg": "Compounds: {compounds} | Cache: {cache}",
+    "tray.status_running": "Service running"
 }
