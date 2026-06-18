@@ -5,6 +5,7 @@
 
 class MoleculeCanvas {
     constructor(containerId, options = {}) {
+        this.containerId = containerId;
         this.container = document.getElementById(containerId);
         this.options = {
             width: options.width || 900,
@@ -154,22 +155,22 @@ class MoleculeCanvas {
                 </div>
 
                 <div class="mol-canvas-area">
-                    <canvas id="${containerId}-canvas"></canvas>
+                    <canvas id="${this.containerId}-canvas"></canvas>
                 </div>
 
                 <div class="mol-canvas-footer">
                     <div class="footer-left">
-                        <span class="mol-formula" id="${containerId}-formula">分子式: —</span>
-                        <span class="mol-weight" id="${containerId}-weight">分子量: —</span>
+                        <span class="mol-formula" id="${this.containerId}-formula">分子式: —</span>
+                        <span class="mol-weight" id="${this.containerId}-weight">分子量: —</span>
                     </div>
                     <div class="footer-center">
-                        <input type="text" class="smiles-output" id="${containerId}-smiles"
+                        <input type="text" class="smiles-output" id="${this.containerId}-smiles"
                                placeholder="SMILES 输出" readonly>
-                        <button class="btn btn-sm btn-copy" id="${containerId}-copy-smiles">复制</button>
+                        <button class="btn btn-sm btn-copy" id="${this.containerId}-copy-smiles">复制</button>
                     </div>
                     <div class="footer-right">
-                        <button class="btn btn-sm btn-primary" id="${containerId}-export-svg">导出 SVG</button>
-                        <button class="btn btn-sm btn-primary" id="${containerId}-export-png">导出 PNG</button>
+                        <button class="btn btn-sm btn-primary" id="${this.containerId}-export-svg">导出 SVG</button>
+                        <button class="btn btn-sm btn-primary" id="${this.containerId}-export-png">导出 PNG</button>
                     </div>
                 </div>
             </div>
