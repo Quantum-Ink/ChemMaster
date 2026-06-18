@@ -319,9 +319,10 @@ def get_mol_info(smiles: str) -> Dict[str, Any]:
     return rdkit_engine.get_mol_info(smiles)
 
 
-def smiles_to_svg(smiles: str, width: int = 400, height: int = 300) -> Optional[str]:
+def smiles_to_svg(smiles: str, width: int = 400, height: int = 300,
+                  show_atom_indices: bool = False) -> Optional[str]:
     """SMILES 转 SVG"""
-    return rdkit_engine.smiles_to_svg(smiles, width, height)
+    return rdkit_engine.smiles_to_svg(smiles, width, height, show_atom_indices)
 
 
 def smiles_to_png_base64(smiles: str, width: int = 400, height: int = 300) -> Optional[str]:
