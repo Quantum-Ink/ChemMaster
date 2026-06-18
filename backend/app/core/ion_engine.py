@@ -75,6 +75,10 @@ SOLUBLE_SALTS = {
     'MgSO4', 'FeSO4', 'Fe2(SO4)3', 'CuSO4', 'ZnSO4',
     'Al2(SO4)3', 'NiSO4', 'CoSO4', 'MnSO4', 'Cr2(SO4)3',
     'Na2SO4', 'K2SO4', '(NH4)2SO4',
+    # 配合物盐（可溶，完全电离）
+    'K3[Fe(CN)6]', 'K4[Fe(CN)6]', 'Na3[AlF6]',
+    '[Cu(NH3)4]SO4', '[Ag(NH3)2]Cl', '[Co(NH3)6]Cl3',
+    'K[PtCl3(NH3)]', 'Na2[SiF6]',
 }
 
 # 难溶物（不拆分）
@@ -391,6 +395,18 @@ class IonEquationBalancer:
         # 提取电荷
         charge = 0
         formula = rest
+
+        # 配合物离子：[Cu(NH3)4]2+ 或 [Fe(CN)6]3-
+        if rest.startswith('['):
+            bracket_match = re.match(r'^(\[.+?\])(\d*)([+-])$', rest)
+            if bracket_match:
+                formula = bracket_match.group(1)
+                num_str = bracket_match.group(2)
+                sign = bracket_match.group(3)
+                charge = int(num_str) if num_str else 1
+                if sign == '-':
+                    charge = -charge
+                return coeff, formula, charge
 
         # 格式：SO4^2- 或 H+
         charge_match = re.match(r'^(.+?)(\d*)([+-])$', rest)
@@ -834,6 +850,15 @@ class MolecularToIonicConverter:
             'CuSO4': ['Cu^2+', 'SO4^2-'],
             'ZnSO4': ['Zn^2+', 'SO4^2-'],
             'Al2(SO4)3': ['2Al^3+', '3SO4^2-'],
+            # 配合物盐
+            'K3[Fe(CN)6]': ['3K+', '[Fe(CN)6]^3-'],
+            'K4[Fe(CN)6]': ['4K+', '[Fe(CN)6]^4-'],
+            'Na3[AlF6]': ['3Na+', '[AlF6]^3-'],
+            '[Cu(NH3)4]SO4': ['[Cu(NH3)4]^2+', 'SO4^2-'],
+            '[Ag(NH3)2]Cl': ['[Ag(NH3)2]+', 'Cl-'],
+            '[Co(NH3)6]Cl3': ['[Co(NH3)6]^3+', '3Cl-'],
+            'K[PtCl3(NH3)]': ['K+', '[PtCl3(NH3)]^-'],
+            'Na2[SiF6]': ['2Na+', '[SiF6]^2-'],
         }
 
         return dissociation_map.get(formula, [])
