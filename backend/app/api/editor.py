@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException
 from ..core.rdkit_engine import get_mol_info, smiles_to_svg, validate_smiles
 from ..core.chemistry import parse_formula
 
-router = APIRouter(prefix="/editor", tags=["editor"])
+router = APIRouter(prefix="/api/editor", tags=["editor"])
 
 
 @router.get("/analyze")
