@@ -82,7 +82,7 @@ class PubChemAPI:
             data = self._get(f"compound/name/{name}/property/"
                            "MolecularFormula,MolecularWeight,SMILES,"
                            "IUPACName,XLogP,HBondDonorCount,"
-                           "HBondAcceptorsCount,RotatableBondCount,"
+                           "HBondAcceptorCount,RotatableBondCount,"
                            "ExactMass,MonoisotopicMass,TPSA,Complexity,Charge")
 
             if not data or 'PropertyTable' not in data:
@@ -107,7 +107,7 @@ class PubChemAPI:
                 synonyms=synonyms,
                 xlogp=props.get('XLogP'),
                 h_bond_donor_count=props.get('HBondDonorCount'),
-                h_bond_acceptor_count=props.get('HBondAcceptorsCount'),
+                h_bond_acceptor_count=props.get('HBondAcceptorCount'),
                 rotatable_bond_count=props.get('RotatableBondCount'),
                 exact_mass=props.get('ExactMass'),
                 monoisotopic_mass=props.get('MonoisotopicMass'),
@@ -133,7 +133,7 @@ class PubChemAPI:
             data = self._get(f"compound/smiles/{smiles}/property/"
                            "MolecularFormula,MolecularWeight,SMILES,"
                            "IUPACName,XLogP,HBondDonorCount,"
-                           "HBondAcceptorsCount,RotatableBondCount,"
+                           "HBondAcceptorCount,RotatableBondCount,"
                            "ExactMass,MonoisotopicMass,TPSA,Complexity,Charge")
 
             if not data or 'PropertyTable' not in data:
@@ -154,7 +154,7 @@ class PubChemAPI:
                 synonyms=synonyms,
                 xlogp=props.get('XLogP'),
                 h_bond_donor_count=props.get('HBondDonorCount'),
-                h_bond_acceptor_count=props.get('HBondAcceptorsCount'),
+                h_bond_acceptor_count=props.get('HBondAcceptorCount'),
                 rotatable_bond_count=props.get('RotatableBondCount'),
                 exact_mass=props.get('ExactMass'),
                 monoisotopic_mass=props.get('MonoisotopicMass'),
@@ -180,7 +180,7 @@ class PubChemAPI:
             data = self._get(f"compound/cid/{cid}/property/"
                            "MolecularFormula,MolecularWeight,SMILES,"
                            "IUPACName,XLogP,HBondDonorCount,"
-                           "HBondAcceptorsCount,RotatableBondCount,"
+                           "HBondAcceptorCount,RotatableBondCount,"
                            "ExactMass,MonoisotopicMass,TPSA,Complexity,Charge")
 
             if not data or 'PropertyTable' not in data:
@@ -201,7 +201,7 @@ class PubChemAPI:
                 synonyms=synonyms,
                 xlogp=props.get('XLogP'),
                 h_bond_donor_count=props.get('HBondDonorCount'),
-                h_bond_acceptor_count=props.get('HBondAcceptorsCount'),
+                h_bond_acceptor_count=props.get('HBondAcceptorCount'),
                 rotatable_bond_count=props.get('RotatableBondCount'),
                 exact_mass=props.get('ExactMass'),
                 monoisotopic_mass=props.get('MonoisotopicMass'),
