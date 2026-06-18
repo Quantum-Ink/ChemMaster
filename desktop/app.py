@@ -8,6 +8,7 @@ import socket
 import threading
 import time
 import sys
+import urllib.request
 from pathlib import Path
 
 logger = logging.getLogger("chemmaster.desktop")
@@ -32,15 +33,21 @@ class ChemMasterDesktop:
         self._running = False
         self._locale_callbacks = []
 
-    def _wait_for_server(self, timeout: float = 10.0) -> bool:
-        """通过端口探测等待服务真正就绪"""
+    def _wait_for_server(self, timeout: float = 15.0) -> bool:
+        """
+        等待 HTTP 服务真正就绪
+        不仅检查端口可连接，还验证 /health 端点返回 200
+        """
         deadline = time.monotonic() + timeout
+        url = f"http://127.0.0.1:{self.port}/health"
         while time.monotonic() < deadline:
             try:
-                with socket.create_connection(("127.0.0.1", self.port), timeout=0.5):
+                req = urllib.request.urlopen(url, timeout=1)
+                if req.status == 200:
                     return True
-            except OSError:
-                time.sleep(0.2)
+            except Exception:
+                pass
+            time.sleep(0.3)
         return False
 
     def start_server(self):
@@ -60,7 +67,7 @@ class ChemMasterDesktop:
         self.server_thread = threading.Thread(target=server.run, daemon=True)
         self.server_thread.start()
 
-        # 通过端口探测等待服务真正就绪
+        # 通过 HTTP 请求等待服务真正就绪
         if self._wait_for_server():
             logger.info(f"Backend server started at http://127.0.0.1:{self.port}")
         else:
@@ -77,7 +84,7 @@ class ChemMasterDesktop:
 
         self.window = webview.create_window(
             title="ChemMaster - 化学式助手",
-            url=f"http://127.0.0.1:{self.port}",
+            url=f"http://127.0.0.1:{self.port}/static/index.html",
             width=1280,
             height=860,
             min_size=(900, 600),
@@ -118,7 +125,10 @@ class ChemMasterDesktop:
         # 2. 启动系统托盘
         self.start_tray()
 
-        # 3. 启动主窗口（阻塞直到窗口关闭）
+        # 3. 等待一下确保页面可加载
+        time.sleep(0.5)
+
+        # 4. 启动主窗口（阻塞直到窗口关闭）
         self.start_webview()
 
     def start_headless(self):
