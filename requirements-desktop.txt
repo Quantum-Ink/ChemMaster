@@ -1,0 +1,17 @@
+# ChemMaster 桌面版额外依赖
+# 在 backend/requirements.txt 基础上安装
+
+# 桌面窗口
+pywebview>=4.0.0
+
+# 系统托盘
+pystray>=0.19.0
+
+# 图标生成（pystray 依赖）
+pillow>=10.0.0
+
+# SQLite 异步支持
+aiosqlite>=0.19.0
+
+# 打包工具
+pyinstaller>=5.0.0
