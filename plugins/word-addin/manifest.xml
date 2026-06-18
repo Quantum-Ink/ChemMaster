@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+           xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+           xsi:type="TaskPaneApp">
+
+  <!-- 基本信息 -->
+  <Id>a1b2c3d4-e5f6-7890-abcd-ef1234567890</Id>
+  <Version>1.0.0</Version>
+  <ProviderName>ChemMaster</ProviderName>
+  <DefaultLocale>zh-CN</DefaultLocale>
+  <DisplayName DefaultValue="ChemMaster 化学式助手"/>
+  <Description DefaultValue="将化学式和反应方程式插入到 Word 文档中"/>
+  <IconUrl DefaultValue="https://localhost:3000/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-64.png"/>
+  <SupportUrl DefaultValue="https://github.com/yourname/ChemMaster"/>
+
+  <!-- 权限 -->
+  <AppDomains>
+    <AppDomain>https://localhost:3000</AppDomain>
+  </AppDomains>
+
+  <!-- 主机配置 -->
+  <Hosts>
+    <Host Name="Document"/>
+  </Hosts>
+
+  <!-- 默认设置 -->
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://localhost:3000/taskpane.html"/>
+  </DefaultSettings>
+
+  <!-- 权限要求 -->
+  <Permissions>ReadWriteDocument</Permissions>
+
+  <!-- 版本覆盖 -->
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Requirements>
+      <Sets>
+        <Set Name="WordApi" MinVersion="1.1"/>
+      </Sets>
+    </Requirements>
+
+    <!-- 主机配置 -->
+    <Hosts>
+      <Host xsi:type="Document">
+        <!-- 扩展点 -->
+        <DesktopFormFactor>
+          <!-- 功能区按钮 -->
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="ChemMasterGroup">
+                <Label resid="GroupLabel"/>
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16"/>
+                  <bt:Image size="32" resid="Icon.32x32"/>
+                  <bt:Image size="80" resid="Icon.80x80"/>
+                </Icon>
+
+                <!-- 打开任务面板按钮 -->
+                <Control xsi:type="Button" id="TaskPaneButton">
+                  <Label resid="TaskPaneButton.Label"/>
+                  <ToolTip resid="TaskPaneButton.Tooltip"/>
+                  <Supertip>
+                    <Title resid="TaskPaneButton.Label"/>
+                    <Description resid="TaskPaneButton.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16"/>
+                    <bt:Image size="32" resid="Icon.32x32"/>
+                    <bt:Image size="80" resid="Icon.80x80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ChemMasterTaskPane</TaskpaneId>
+                    <SourceLocation resid="TaskPaneUrl"/>
+                  </Action>
+                </Control>
+
+                <!-- 插入化学式按钮 -->
+                <Control xsi:type="Button" id="InsertFormulaButton">
+                  <Label resid="InsertFormulaButton.Label"/>
+                  <ToolTip resid="InsertFormulaButton.Tooltip"/>
+                  <Supertip>
+                    <Title resid="InsertFormulaButton.Label"/>
+                    <Description resid="InsertFormulaButton.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16"/>
+                    <bt:Image size="32" resid="Icon.32x32"/>
+                    <bt:Image size="80" resid="Icon.80x80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction">
+                    <FunctionName>insertFormula</FunctionName>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+
+          <!-- 函数文件 -->
+          <FunctionFile resid="Commands.Url"/>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+
+    <!-- 资源 -->
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="https://localhost:3000/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://localhost:3000/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://localhost:3000/assets/icon-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="Commands.Url" DefaultValue="https://localhost:3000/commands.html"/>
+        <bt:Url id="TaskPaneUrl" DefaultValue="https://localhost:3000/taskpane.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GroupLabel" DefaultValue="ChemMaster"/>
+        <bt:String id="TaskPaneButton.Label" DefaultValue="打开化学式助手"/>
+        <bt:String id="InsertFormulaButton.Label" DefaultValue="插入化学式"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="TaskPaneButton.Tooltip" DefaultValue="打开 ChemMaster 任务面板，输入化学式或方程式"/>
+        <bt:String id="InsertFormulaButton.Tooltip" DefaultValue="快速插入化学式到文档中"/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

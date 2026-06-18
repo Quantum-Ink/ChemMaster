@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemMaster 化学式助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .preview-box {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            min-height: 60px;
+        }
+
+        .preview-box .label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .preview-box .content {
+            font-size: 18px;
+            color: #333;
+            font-family: 'Times New Roman', serif;
+        }
+
+        .format-options {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .format-option {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .format-option.selected {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+
+        .format-option:hover {
+            border-color: #667eea;
+        }
+
+        .format-option .name {
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+
+        .format-option .desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .button-group .btn {
+            flex: 1;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .history-item:hover {
+            background: #f8f9fa;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item .formula {
+            font-family: 'Times New Roman', serif;
+            font-size: 16px;
+        }
+
+        .history-item .time {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 ChemMaster</h1>
+            <p>化学式助手 - Word 插件</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="formula">化学式</button>
+            <button class="tab" data-tab="equation">反应方程式</button>
+            <button class="tab" data-tab="batch">批量处理</button>
+        </div>
+
+        <div class="content">
+            <!-- 化学式标签页 -->
+            <div class="tab-content active" id="formula-tab">
+                <div class="input-group">
+                    <label>输入化学式</label>
+                    <input type="text" id="formula-input" placeholder="例如: H2SO4, Ca(OH)2, NH4+">
+                </div>
+
+                <div class="format-options">
+                    <div class="format-option selected" data-format="subscript">
+                        <div class="name">下标格式</div>
+                        <div class="desc">H₂SO₄</div>
+                    </div>
+                    <div class="format-option" data-format="latex">
+                        <div class="name">LaTeX 格式</div>
+                        <div class="desc">\ce{H2SO4}</div>
+                    </div>
+                </div>
+
+                <div class="preview-box">
+                    <div class="label">预览</div>
+                    <div class="content" id="formula-preview">-</div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn" onclick="convertFormula()">转换</button>
+                    <button class="btn btn-secondary" onclick="insertFormula()">插入到文档</button>
+                </div>
+
+                <div class="status" id="formula-status"></div>
+
+                <div class="loading" id="formula-loading">
+                    <div class="spinner"></div>
+                    <div>处理中...</div>
+                </div>
+            </div>
+
+            <!-- 反应方程式标签页 -->
+            <div class="tab-content" id="equation-tab">
+                <div class="input-group">
+                    <label>输入反应方程式</label>
+                    <input type="text" id="equation-input" placeholder="例如: Fe + O2 -> Fe2O3">
+                </div>
+
+                <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="balance-check" checked>
+                        自动平衡方程式
+                    </label>
+                </div>
+
+                <div class="format-options">
+                    <div class="format-option selected" data-format="subscript">
+                        <div class="name">下标格式</div>
+                        <div class="desc">4Fe + 3O₂ → 2Fe₂O₃</div>
+                    </div>
+                    <div class="format-option" data-format="latex">
+                        <div class="name">LaTeX 格式</div>
+                        <div class="desc">\ce{4Fe + 3O2 -> 2Fe2O3}</div>
+                    </div>
+                </div>
+
+                <div class="preview-box">
+                    <div class="label">预览</div>
+                    <div class="content" id="equation-preview">-</div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn" onclick="convertEquation()">转换</button>
+                    <button class="btn btn-secondary" onclick="insertEquation()">插入到文档</button>
+                </div>
+
+                <div class="status" id="equation-status"></div>
+
+                <div class="loading" id="equation-loading">
+                    <div class="spinner"></div>
+                    <div>处理中...</div>
+                </div>
+            </div>
+
+            <!-- 批量处理标签页 -->
+            <div class="tab-content" id="batch-tab">
+                <div class="input-group">
+                    <label>输入多个方程式（每行一个）</label>
+                    <textarea id="batch-input" rows="5" placeholder="Fe + O2 -> Fe2O3
+H2 + O2 -> H2O
+Na + H2O -> NaOH + H2"></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="batch-balance-check" checked>
+                        自动平衡方程式
+                    </label>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn" onclick="processBatch()">批量处理</button>
+                    <button class="btn btn-secondary" onclick="insertBatch()">全部插入</button>
+                </div>
+
+                <div class="preview-box">
+                    <div class="label">处理结果</div>
+                    <div class="content" id="batch-preview">-</div>
+                </div>
+
+                <div class="status" id="batch-status"></div>
+
+                <div class="loading" id="batch-loading">
+                    <div class="spinner"></div>
+                    <div>处理中...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 历史记录 -->
+        <div class="content" style="border-top: 1px solid #e9ecef;">
+            <h3 style="margin-bottom: 10px;">历史记录</h3>
+            <div class="history-list" id="history-list">
+                <div class="history-item" style="color: #666; text-align: center;">
+                    暂无历史记录
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script src="taskpane.js"></script>
+</body>
+</html>

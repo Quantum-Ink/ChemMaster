@@ -115,66 +115,62 @@ class EquationBalancer:
         使用高斯消元求解矩阵的零空间
 
         Args:
-            matrix: 系数矩阵
+            matrix: 系数矩阵 (元素数 x 化合物数)
 
         Returns:
             零空间基向量，或 None 如果无解
         """
-        # 转置矩阵（行变为列）
-        A = matrix.T
+        # 矩阵形状：元素数 x 化合物数
+        num_elements, num_compounds = matrix.shape
 
-        # 高斯消元
-        m, n = A.shape
+        # 创建增广矩阵 [A | 0]
+        A = matrix.copy().astype(float)
+
+        # 高斯消元（行简化）
         pivot_cols = []
+        pivot_row = 0
 
-        for col in range(n):
+        for col in range(num_compounds):
             # 找主元
-            pivot_row = None
-            for row in range(len(pivot_cols), m):
-                if abs(A[row][col]) > 1e-10:
-                    pivot_row = row
+            found = False
+            for row in range(pivot_row, num_elements):
+                if abs(A[row, col]) > 1e-10:
+                    # 交换行
+                    A[[pivot_row, row]] = A[[row, pivot_row]]
+                    found = True
                     break
 
-            if pivot_row is None:
+            if not found:
                 continue
 
-            # 交换行
-            A[[len(pivot_cols), pivot_row]] = A[[pivot_row, len(pivot_cols)]]
-
             # 归一化
-            pivot_val = A[len(pivot_cols)][col]
-            A[len(pivot_cols)] = A[len(pivot_cols)] / pivot_val
+            pivot_val = A[pivot_row, col]
+            A[pivot_row] = A[pivot_row] / pivot_val
 
             # 消元
-            for row in range(m):
-                if row != len(pivot_cols) and abs(A[row][col]) > 1e-10:
-                    factor = A[row][col]
-                    A[row] = A[row] - factor * A[len(pivot_cols)]
+            for row in range(num_elements):
+                if row != pivot_row and abs(A[row, col]) > 1e-10:
+                    factor = A[row, col]
+                    A[row] = A[row] - factor * A[pivot_row]
 
             pivot_cols.append(col)
+            pivot_row += 1
 
-        # 找自由变量
-        free_vars = [i for i in range(n) if i not in pivot_cols]
+        # 找自由变量（非主元列）
+        free_vars = [i for i in range(num_compounds) if i not in pivot_cols]
 
         if not free_vars:
-            # 检查是否有解
-            # 如果最后一行全为0，则有无穷多解
-            if m > 0 and np.allclose(A[-1], 0):
-                # 返回一个特解
-                solution = np.zeros(n)
-                for i, col in enumerate(pivot_cols):
-                    solution[col] = 1.0
-                return solution
             return None
 
         # 构建零空间基向量
-        solution = np.zeros(n)
+        solution = np.zeros(num_compounds)
         free_var_idx = free_vars[0]
         solution[free_var_idx] = 1.0
 
-        # 回代
+        # 回代求解主元变量
         for i, col in enumerate(pivot_cols):
-            solution[col] = -A[i][free_var_idx]
+            # 从简化行阶梯形中读取系数
+            solution[col] = -A[i, free_var_idx]
 
         return solution
 
