@@ -233,7 +233,6 @@ class PluginManager:
 
             tags = ep.tags or [plugin.name]
             route_kwargs = {
-                "path": ep.path,
                 "endpoint": ep.handler,
                 "tags": tags,
                 "summary": ep.summary or f"{plugin.name} - {ep.path}",
@@ -242,13 +241,13 @@ class PluginManager:
             # 根据 HTTP 方法注册路由
             method = ep.method.upper()
             if method == "GET":
-                self._app.get(**route_kwargs)
+                self._app.get(ep.path, **route_kwargs)
             elif method == "POST":
-                self._app.post(**route_kwargs)
+                self._app.post(ep.path, **route_kwargs)
             elif method == "PUT":
-                self._app.put(**route_kwargs)
+                self._app.put(ep.path, **route_kwargs)
             elif method == "DELETE":
-                self._app.delete(**route_kwargs)
+                self._app.delete(ep.path, **route_kwargs)
             else:
                 logger.warning(f"Unsupported HTTP method '{method}' for {ep.path}")
 
