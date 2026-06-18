@@ -54,8 +54,8 @@ class FormulaParser:
         n = len(formula)
 
         while i < n:
-            if formula[i] == '(':
-                # 处理括号
+            if formula[i] in '([':
+                # 处理括号（圆括号或方括号）
                 bracket_content, end_idx = self._extract_bracket(formula, i)
                 # 获取括号后的数字
                 multiplier, new_idx = self._extract_number(formula, end_idx)
@@ -76,13 +76,15 @@ class FormulaParser:
         return result
 
     def _extract_bracket(self, formula: str, start: int) -> Tuple[str, int]:
-        """提取括号内容"""
+        """提取括号内容（支持圆括号和方括号）"""
+        open_char = formula[start]
+        close_char = ')' if open_char == '(' else ']'
         depth = 0
         i = start
         while i < len(formula):
-            if formula[i] == '(':
+            if formula[i] == open_char:
                 depth += 1
-            elif formula[i] == ')':
+            elif formula[i] == close_char:
                 depth -= 1
                 if depth == 0:
                     return formula[start + 1:i], i + 1
@@ -134,8 +136,8 @@ class FormulaParser:
             if formula[i] == '(':
                 result += '('
                 i += 1
-            elif formula[i] == ')':
-                result += ')'
+            elif formula[i] in ')]':
+                result += formula[i]
                 i += 1
                 # 括号后的数字转为下标
                 while i < n and formula[i].isdigit():
