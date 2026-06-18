@@ -20,7 +20,35 @@ class MoleculeViewer {
         this.currentStyle = 'ball-and-stick';
         this.is3DmolLoaded = false;
 
-        this.init();
+        // 延迟初始化：等待标签页可见后再创建 3D 查看器
+        this._initialized = false;
+        this._onTabShown = async (e) => {
+            if (e.detail.tabId === 'viewer3d-tab' && !this._initialized) {
+                this._initialized = true;
+                await this.init();
+            } else if (e.detail.tabId === 'viewer3d-tab' && this._initialized) {
+                this.resize();
+            }
+        };
+        window.addEventListener('tab-shown', this._onTabShown);
+    }
+
+    resize() {
+        const canvasContainer = this.container.querySelector('#viewer-3d-canvas');
+        if (!canvasContainer || !this.viewer) return;
+        const rect = canvasContainer.getBoundingClientRect();
+        if (rect.width < 10 || rect.height < 10) return;
+        // 3Dmol 支持 resize 方法
+        try {
+            this.viewer.resize();
+            this.viewer.render();
+        } catch (e) {
+            // 如果 resize 不支持，重新初始化
+            this.initViewer();
+            if (this.currentSdf) {
+                this.renderSdf(this.currentSdf);
+            }
+        }
     }
 
     async init() {
@@ -314,19 +342,30 @@ class MoleculeViewer {
                 return;
             }
 
-            const script = document.createElement('script');
-            script.src = 'https://3Dmol.org/build/3Dmol-min.js';
-            script.onload = () => {
-                setTimeout(() => {
-                    this.initViewer();
+            const CDNS = [
+                'https://3Dmol.org/build/3Dmol-min.js',
+                'https://cdn.jsdelivr.net/npm/3dmol@2.0.0/build/3Dmol-min.js',
+            ];
+
+            let idx = 0;
+            const tryLoad = () => {
+                if (idx >= CDNS.length) {
+                    this.showStatus('3Dmol.js 加载失败，请检查网络连接', 'error');
                     resolve();
-                }, 100);
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = CDNS[idx];
+                script.onload = () => {
+                    setTimeout(() => {
+                        this.initViewer();
+                        resolve();
+                    }, 100);
+                };
+                script.onerror = () => { idx++; tryLoad(); };
+                document.head.appendChild(script);
             };
-            script.onerror = () => {
-                this.showStatus('3Dmol.js 加载失败，请检查网络连接', 'error');
-                resolve();
-            };
-            document.head.appendChild(script);
+            tryLoad();
         });
     }
 
