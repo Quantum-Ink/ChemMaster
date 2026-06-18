@@ -39,6 +39,9 @@ function initNavigation() {
             // 更新内容显示
             contents.forEach(c => c.classList.remove('active'));
             document.getElementById(targetId).classList.add('active');
+
+            // 通知组件标签已显示（用于画布/3D查看器重新调整尺寸）
+            window.dispatchEvent(new CustomEvent('tab-shown', { detail: { tabId: targetId } }));
         });
     });
 }
@@ -633,6 +636,7 @@ function initMoleculeCanvas() {
     const container = document.getElementById('molecule-canvas-container');
     if (!container) return;
 
+    // MoleculeCanvas 内部监听 tab-shown 事件延迟初始化
     window.moleculeCanvas = new MoleculeCanvas('molecule-canvas-container');
 }
 
@@ -643,6 +647,7 @@ function initMoleculeViewer() {
     const container = document.getElementById('molecule-viewer-container');
     if (!container) return;
 
+    // MoleculeViewer 内部监听 tab-shown 事件延迟初始化
     window.moleculeViewer = new MoleculeViewer('molecule-viewer-container', {
         apiBaseUrl: '/api/structure'
     });
