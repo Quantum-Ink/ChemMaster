@@ -9,23 +9,33 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from pathlib import Path
+import sys
 
-from app.api.editor import router as editor
-from app.api.export import router as export
-from app.api.structure import router as structure
-from app.api.data import router as data
-from app.api.ion import router as ion
-from app.services.plugin_manager import plugin_manager
-from app.data.database import Database
-from app.data.seed_data import seed_database
+from backend.app.api.editor import router as editor
+from backend.app.api.export import router as export
+from backend.app.api.structure import router as structure
+from backend.app.api.data import router as data
+from backend.app.api.ion import router as ion
+from backend.app.services.plugin_manager import plugin_manager
+from backend.app.data.database import Database
+from backend.app.data.seed_data import seed_database
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("chemmaster")
 
+# PyInstaller 打包后的根目录检测
+if getattr(sys, 'frozen', False):
+    # PyInstaller --onefile 模式：数据文件解压到 sys._MEIPASS
+    _BASE_DIR = Path(sys._MEIPASS)
+else:
+    # 开发模式：项目根目录
+    _BASE_DIR = Path(__file__).parent.parent.parent
+
 # 前端静态文件目录
-FRONTEND_DIR = Path(__file__).parent.parent.parent / "frontend"
+FRONTEND_DIR = _BASE_DIR / "frontend"
 
 
 # ---- 应用生命周期 ----
@@ -87,7 +97,7 @@ if FRONTEND_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
 # 语言包文件
-LOCALES_DIR = Path(__file__).parent.parent.parent / "desktop" / "locales"
+LOCALES_DIR = _BASE_DIR / "desktop" / "locales"
 if LOCALES_DIR.exists():
     app.mount("/locales", StaticFiles(directory=str(LOCALES_DIR)), name="locales")
 
@@ -116,5 +126,11 @@ def list_plugins_by_category(category: str):
 
 @app.get("/")
 def root():
+    """重定向到前端页面"""
+    return RedirectResponse(url="/static/index.html")
+
+
+@app.get("/health")
+def health():
     """健康检查端点"""
     return {"status": "running", "version": "2.0.0"}
