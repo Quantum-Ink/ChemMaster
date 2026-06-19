@@ -22,14 +22,18 @@ class MoleculeCanvas {
         this.nextBondId = 1;
 
         // 编辑器状态
-        this.currentTool = 'atom';
+        this.currentTool = 'select';
         this.currentElement = 'C';
         this.currentBondType = 1; // 1=单键, 2=双键, 3=三键
         this.hoveredAtom = null;
         this.selectedAtom = null;
+        this.selectedAtoms = new Set(); // 多选集合
         this.dragStartAtom = null;
         this.dragLine = null;
         this.isDragging = false;
+        this.isMoving = false;
+        this.moveStartPos = null;
+        this.selectionBox = null; // 框选矩形 {x1,y1,x2,y2}
 
         // 画布状态
         this.offsetX = 0;
@@ -131,6 +135,7 @@ class MoleculeCanvas {
                     <div class="tool-group">
                         <div class="tool-group-label">工具</div>
                         <div class="action-tools">
+                            <button class="tool-btn active" id="select-btn" title="选取/移动 (V)">👆</button>
                             <button class="tool-btn" id="eraser-btn" title="橡皮擦">🗑️</button>
                             <button class="tool-btn" id="undo-btn" title="撤销 (Ctrl+Z)">↩️</button>
                             <button class="tool-btn" id="redo-btn" title="重做 (Ctrl+Y)">↪️</button>
@@ -395,11 +400,10 @@ class MoleculeCanvas {
         // 原子按钮
         this.container.querySelectorAll('.atom-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                this.currentTool = 'atom';
                 this.currentElement = btn.dataset.element;
+                this.setTool('atom');
                 this.container.querySelectorAll('.atom-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                this.container.querySelector('#eraser-btn').classList.remove('active');
             });
         });
 
@@ -412,10 +416,14 @@ class MoleculeCanvas {
             });
         });
 
+        // 选取工具
+        this.container.querySelector('#select-btn').addEventListener('click', () => {
+            this.setTool('select');
+        });
+
         // 橡皮擦
         this.container.querySelector('#eraser-btn').addEventListener('click', () => {
-            this.currentTool = this.currentTool === 'eraser' ? 'atom' : 'eraser';
-            this.container.querySelector('#eraser-btn').classList.toggle('active');
+            this.setTool('eraser');
         });
 
         // 撤销/重做
@@ -442,10 +450,41 @@ class MoleculeCanvas {
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.key === 'z') { e.preventDefault(); this.undo(); }
             if (e.ctrlKey && e.key === 'y') { e.preventDefault(); this.redo(); }
+            if (e.key === 'v' || e.key === 'V') { this.setTool('select'); }
+            if (e.key === 'Delete' || e.key === 'Backspace') { this.deleteSelected(); }
         });
 
         // 窗口大小变化
         window.addEventListener('resize', () => this.setupCanvas());
+    }
+
+    // ========== 工具切换 ==========
+
+    setTool(tool) {
+        this.currentTool = tool;
+        // 更新按钮状态
+        const btns = { 'select': '#select-btn', 'eraser': '#eraser-btn' };
+        this.container.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+        if (btns[tool]) {
+            const btn = this.container.querySelector(btns[tool]);
+            if (btn) btn.classList.add('active');
+        }
+        // 切换工具时清除选取
+        if (tool !== 'select') {
+            this.selectedAtoms.clear();
+            this.selectedAtom = null;
+        }
+        this.draw();
+    }
+
+    deleteSelected() {
+        if (this.selectedAtoms.size === 0) return;
+        this.saveState();
+        const ids = [...this.selectedAtoms];
+        ids.forEach(id => this.removeAtom(id));
+        this.selectedAtoms.clear();
+        this.selectedAtom = null;
+        this.draw();
     }
 
     // ========== 坐标转换 ==========
@@ -470,15 +509,8 @@ class MoleculeCanvas {
     onMouseDown(e) {
         const pos = this.screenToCanvas(e.clientX, e.clientY);
 
-        // 右键平移
-        if (e.button === 2) {
-            this.isPanning = true;
-            this.panStart = { x: e.clientX - this.offsetX, y: e.clientY - this.offsetY };
-            return;
-        }
-
-        // 中键平移
-        if (e.button === 1) {
+        // 右键/中键平移
+        if (e.button === 2 || e.button === 1) {
             this.isPanning = true;
             this.panStart = { x: e.clientX - this.offsetX, y: e.clientY - this.offsetY };
             return;
@@ -486,6 +518,41 @@ class MoleculeCanvas {
 
         const hovered = this.findAtomAt(pos.x, pos.y);
 
+        // ====== 选取工具 ======
+        if (this.currentTool === 'select') {
+            if (hovered) {
+                // 点击到原子
+                if (e.shiftKey) {
+                    // Shift+多选：切换选中状态
+                    if (this.selectedAtoms.has(hovered.id)) {
+                        this.selectedAtoms.delete(hovered.id);
+                    } else {
+                        this.selectedAtoms.add(hovered.id);
+                    }
+                    this.selectedAtom = hovered;
+                } else if (!this.selectedAtoms.has(hovered.id)) {
+                    // 普通点击：单选
+                    this.selectedAtoms.clear();
+                    this.selectedAtoms.add(hovered.id);
+                    this.selectedAtom = hovered;
+                }
+                // 开始移动
+                this.isMoving = true;
+                this.moveStartPos = { x: pos.x, y: pos.y };
+                this.dragStartAtom = hovered;
+            } else {
+                // 点击空白：开始框选
+                if (!e.shiftKey) {
+                    this.selectedAtoms.clear();
+                    this.selectedAtom = null;
+                }
+                this.selectionBox = { x1: pos.x, y1: pos.y, x2: pos.x, y2: pos.y };
+            }
+            this.draw();
+            return;
+        }
+
+        // ====== 橡皮擦工具 ======
         if (this.currentTool === 'eraser') {
             if (hovered) {
                 this.saveState();
@@ -500,6 +567,7 @@ class MoleculeCanvas {
             return;
         }
 
+        // ====== 原子工具 ======
         if (hovered) {
             this.dragStartAtom = hovered;
             this.isDragging = true;
@@ -521,6 +589,30 @@ class MoleculeCanvas {
 
         this.hoveredAtom = this.findAtomAt(pos.x, pos.y);
 
+        // 选取工具：移动选中原子
+        if (this.currentTool === 'select') {
+            if (this.isMoving && this.moveStartPos) {
+                const dx = pos.x - this.moveStartPos.x;
+                const dy = pos.y - this.moveStartPos.y;
+                this.moveStartPos = { x: pos.x, y: pos.y };
+                this.selectedAtoms.forEach(id => {
+                    const atom = this.atoms.find(a => a.id === id);
+                    if (atom) { atom.x += dx; atom.y += dy; }
+                });
+                this.draw();
+                return;
+            }
+            // 框选更新
+            if (this.selectionBox) {
+                this.selectionBox.x2 = pos.x;
+                this.selectionBox.y2 = pos.y;
+                this.draw();
+                return;
+            }
+            this.draw();
+            return;
+        }
+
         if (this.isDragging && this.dragStartAtom) {
             this.dragLine = { x: pos.x, y: pos.y };
         }
@@ -534,15 +626,36 @@ class MoleculeCanvas {
             return;
         }
 
+        // 选取工具：完成移动或框选
+        if (this.currentTool === 'select') {
+            if (this.isMoving) {
+                this.isMoving = false;
+                this.moveStartPos = null;
+            }
+            if (this.selectionBox) {
+                // 框选：选中矩形内的所有原子
+                const box = this.selectionBox;
+                const minX = Math.min(box.x1, box.x2), maxX = Math.max(box.x1, box.x2);
+                const minY = Math.min(box.y1, box.y2), maxY = Math.max(box.y1, box.y2);
+                this.atoms.forEach(a => {
+                    if (a.x >= minX && a.x <= maxX && a.y >= minY && a.y <= maxY) {
+                        this.selectedAtoms.add(a.id);
+                    }
+                });
+                this.selectionBox = null;
+                this.draw();
+            }
+            return;
+        }
+
+        // 原子工具：拖拽创建键
         if (this.isDragging && this.dragStartAtom) {
             const pos = this.screenToCanvas(e.clientX, e.clientY);
             const target = this.findAtomAt(pos.x, pos.y);
 
             if (target && target.id !== this.dragStartAtom.id) {
-                // 检查是否已存在键
                 const existing = this.findBond(this.dragStartAtom.id, target.id);
                 if (existing) {
-                    // 循环切换键型
                     this.saveState();
                     existing.type = existing.type >= 3 ? 1 : existing.type + 1;
                 } else {
@@ -550,14 +663,12 @@ class MoleculeCanvas {
                     this.addBond(this.dragStartAtom.id, target.id, this.currentBondType);
                 }
             } else if (!target) {
-                // 拖拽到空白处：在目标位置创建新原子并连接
                 const dx = pos.x - this.dragStartAtom.x;
                 const dy = pos.y - this.dragStartAtom.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
 
                 if (dist > 10) {
                     this.saveState();
-                    // 按标准键长对齐
                     const bl = this.options.bondLength;
                     const angle = Math.atan2(dy, dx);
                     const nx = this.dragStartAtom.x + bl * Math.cos(angle);
@@ -819,12 +930,37 @@ class MoleculeCanvas {
             ctx.setLineDash([]);
         }
 
-        // 绘制原子
+        // 绘制原子（选中高亮）
         for (const atom of this.atoms) {
-            this.drawAtom(ctx, atom, atom === this.hoveredAtom);
+            const isSelected = this.selectedAtoms.has(atom.id);
+            const isHovered = atom === this.hoveredAtom;
+            this.drawAtom(ctx, atom, isHovered);
+            if (isSelected) {
+                ctx.strokeStyle = '#667eea';
+                ctx.lineWidth = 2.5 / this.scale;
+                ctx.beginPath();
+                ctx.arc(atom.x, atom.y, 22, 0, Math.PI * 2);
+                ctx.stroke();
+            }
         }
 
         ctx.restore();
+
+        // 绘制框选矩形（在屏幕坐标系）
+        if (this.selectionBox) {
+            const box = this.selectionBox;
+            const sx1 = box.x1 * this.scale + this.offsetX;
+            const sy1 = box.y1 * this.scale + this.offsetY;
+            const sx2 = box.x2 * this.scale + this.offsetX;
+            const sy2 = box.y2 * this.scale + this.offsetY;
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 3]);
+            ctx.fillStyle = 'rgba(102, 126, 234, 0.08)';
+            ctx.fillRect(sx1, sy1, sx2 - sx1, sy2 - sy1);
+            ctx.strokeRect(sx1, sy1, sx2 - sx1, sy2 - sy1);
+            ctx.setLineDash([]);
+        }
     }
 
     drawGrid(ctx, w, h) {
@@ -1043,8 +1179,64 @@ class MoleculeCanvas {
 
     // ========== 导出 ==========
 
-    exportSVG() {
-        if (this.atoms.length === 0) return;
+    showToast(msg, duration = 2000) {
+        let toast = this.container.querySelector('.canvas-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.className = 'canvas-toast';
+            toast.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:10px 24px;border-radius:8px;font-size:14px;z-index:999;pointer-events:none;transition:opacity 0.3s;';
+            this.container.style.position = 'relative';
+            this.container.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        clearTimeout(this._toastTimer);
+        this._toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, duration);
+    }
+
+    async _downloadBlob(blob, filename) {
+        // 优先使用 File System Access API（支持"另存为"对话框）
+        if (window.showSaveFilePicker) {
+            try {
+                const ext = filename.split('.').pop();
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: filename,
+                    types: [{
+                        description: ext.toUpperCase() + ' 文件',
+                        accept: { [blob.type]: ['.' + ext] }
+                    }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                return true;
+            } catch (e) {
+                if (e.name === 'AbortError') return false; // 用户取消
+                console.error('Save failed:', e);
+            }
+        }
+        // 降级：普通下载
+        try {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            return true;
+        } catch (e) {
+            console.error('Download failed:', e);
+            return false;
+        }
+    }
+
+    async exportSVG() {
+        if (this.atoms.length === 0) {
+            this.showToast('请先绘制分子结构');
+            return;
+        }
 
         // 计算边界
         let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -1099,16 +1291,15 @@ class MoleculeCanvas {
         svg += '</svg>';
 
         const blob = new Blob([svg], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'molecule.svg';
-        a.click();
-        URL.revokeObjectURL(url);
+        const ok = await this._downloadBlob(blob, 'molecule.svg');
+        if (ok) this.showToast('✓ 已导出 SVG');
     }
 
-    exportPNG() {
-        if (this.atoms.length === 0) return;
+    async exportPNG() {
+        if (this.atoms.length === 0) {
+            this.showToast('请先绘制分子结构');
+            return;
+        }
 
         // 使用当前 canvas 导出
         const tempCanvas = document.createElement('canvas');
@@ -1145,13 +1336,13 @@ class MoleculeCanvas {
             this.drawAtom(tempCtx, atom, false);
         }
 
-        tempCanvas.toBlob((blob) => {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'molecule.png';
-            a.click();
-            URL.revokeObjectURL(url);
+        tempCanvas.toBlob(async (blob) => {
+            if (blob) {
+                const ok = await this._downloadBlob(blob, 'molecule.png');
+                if (ok) this.showToast('✓ 已导出 PNG');
+            } else {
+                this.showToast('导出失败');
+            }
         });
     }
 
