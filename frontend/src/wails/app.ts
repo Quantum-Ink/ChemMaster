@@ -15,9 +15,11 @@ declare global {
         RenderEquation: (equation: string) => Promise<any>
         GetElement: (symbol: string) => Promise<any>
         SearchElements: (query: string) => Promise<any>
+        GetAllElements: () => Promise<any>
         SearchCompounds: (query: string) => Promise<any>
         ListProviders: () => Promise<any>
         SearchCompoundOnline: (query: string) => Promise<any>
+        SetProviderEnabled: (name: string, enabled: boolean) => Promise<any>
         TestProviderConnection: (name: string) => Promise<any>
         ListPlugins: () => Promise<any>
         SetPluginEnabled: (name: string, enabled: boolean) => Promise<any>
@@ -84,6 +86,11 @@ export async function searchElements(query: string) {
   return []
 }
 
+export async function getAllElements() {
+  if (isWails()) return window.go.app.GetAllElements()
+  return []
+}
+
 export async function searchCompounds(query: string) {
   if (isWails()) return window.go.app.SearchCompounds(query)
   return []
@@ -97,6 +104,11 @@ export async function listProviders() {
 export async function searchCompoundOnline(query: string) {
   if (isWails()) return window.go.app.SearchCompoundOnline(query)
   return []
+}
+
+export async function setProviderEnabled(name: string, enabled: boolean) {
+  if (isWails()) return window.go.app.SetProviderEnabled(name, enabled)
+  return null
 }
 
 export async function testProviderConnection(name: string) {

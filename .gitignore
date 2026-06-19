@@ -29,10 +29,5 @@ Thumbs.db
 *.db-journal
 /tmp
 
-# Python (legacy)
-__pycache__/
-*.py[cod]
-*.egg-info/
-.venv/
-venv/
-*.spec
+# Claude
+.claude/settings.local.json

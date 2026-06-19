@@ -6,7 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
+	"net/url"
 	"time"
 
 	"chemmaster/internal/database"
@@ -145,10 +145,10 @@ type PubChemResponse struct {
 // searchPubChem searches the PubChem API.
 func (m *Manager) searchPubChem(query string) ([]CompoundInfo, error) {
 	// Try name search
-	url := fmt.Sprintf("%s/compound/name/%s/property/MolecularFormula,MolecularWeight,IUPACName,CanonicalSMILES/JSON",
-		m.providers[1].BaseURL, strings.ReplaceAll(query, " ", "%20"))
+	apiURL := fmt.Sprintf("%s/compound/name/%s/property/MolecularFormula,MolecularWeight,IUPACName,CanonicalSMILES/JSON",
+		m.providers[1].BaseURL, url.PathEscape(query))
 
-	resp, err := m.client.Get(url)
+	resp, err := m.client.Get(apiURL)
 	if err != nil {
 		return nil, err
 	}
@@ -180,6 +180,22 @@ func (m *Manager) searchPubChem(query string) ([]CompoundInfo, error) {
 	}
 
 	return results, nil
+}
+
+// SetProviderEnabled enables or disables a provider by name.
+func (m *Manager) SetProviderEnabled(name string, enabled bool) error {
+	for _, p := range m.providers {
+		if p.Name == name {
+			p.Enabled = enabled
+			if enabled && p.Status == "disabled" {
+				p.Status = "ready"
+			} else if !enabled {
+				p.Status = "disabled"
+			}
+			return nil
+		}
+	}
+	return fmt.Errorf("provider '%s' not found", name)
 }
 
 // TestConnection tests a provider's connectivity.

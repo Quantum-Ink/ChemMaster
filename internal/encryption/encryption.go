@@ -10,6 +10,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+
+	"golang.org/x/crypto/pbkdf2"
 )
 
 // Manager handles AES-256 encryption/decryption for sensitive data.
@@ -24,15 +26,39 @@ func NewManager() *Manager {
 	return &Manager{key: key}
 }
 
-// deriveKey derives an AES-256 key from machine-specific data.
+// keyFilePath returns the path to the stored key salt.
+func keyFilePath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		home = "."
+	}
+	return filepath.Join(home, ".chemmaster", ".key_salt")
+}
+
+// deriveKey derives an AES-256 key using PBKDF2 with a persistent random salt.
+// On first run, a random salt is generated and saved; on subsequent runs it is reused.
 func deriveKey() []byte {
-	// Use a combination of machine-specific data
 	hostname, _ := os.Hostname()
 	home, _ := os.UserHomeDir()
-	seed := fmt.Sprintf("chemmaster-%s-%s-secret", hostname, home)
+	passphrase := fmt.Sprintf("chemmaster-%s-%s", hostname, home)
 
-	hash := sha256.Sum256([]byte(seed))
-	return hash[:]
+	saltPath := keyFilePath()
+	salt, err := os.ReadFile(saltPath)
+	if err != nil {
+		// First run: generate and persist a random 16-byte salt
+		salt = make([]byte, 16)
+		if _, err := rand.Read(salt); err != nil {
+			panic("encryption: cannot generate random salt: " + err.Error())
+		}
+		dir := filepath.Dir(saltPath)
+		os.MkdirAll(dir, 0700)
+		if err := os.WriteFile(saltPath, salt, 0600); err != nil {
+			panic("encryption: cannot save key salt: " + err.Error())
+		}
+	}
+
+	// PBKDF2 with 100,000 iterations and SHA-256
+	return pbkdf2.Key([]byte(passphrase), salt, 100_000, 32, sha256.New)
 }
 
 // Encrypt encrypts plaintext using AES-256-GCM.
@@ -87,110 +113,3 @@ func (m *Manager) Decrypt(encoded string) (string, error) {
 	return string(plaintext), nil
 }
 
-// CredentialStore stores encrypted credentials.
-type CredentialStore struct {
-	mgr      *Manager
-	filePath string
-}
-
-// NewCredentialStore creates a new credential store.
-// Credentials are stored encrypted at ~/.chemmaster/credentials.enc.
-func NewCredentialStore() *CredentialStore {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		// Fallback to current directory if home is unavailable
-		home = "."
-	}
-	storePath := filepath.Join(home, ".chemmaster", "credentials.enc")
-	return &CredentialStore{
-		mgr:      NewManager(),
-		filePath: storePath,
-	}
-}
-
-// SaveCredential saves an encrypted credential.
-func (cs *CredentialStore) SaveCredential(name, value string) error {
-	encrypted, err := cs.mgr.Encrypt(value)
-	if err != nil {
-		return err
-	}
-
-	// Read existing credentials
-	creds := cs.loadAll()
-	creds[name] = encrypted
-
-	// Write back
-	data := ""
-	for k, v := range creds {
-		data += k + "=" + v + "\n"
-	}
-
-	dir := filepath.Dir(cs.filePath)
-	os.MkdirAll(dir, 0700)
-	return os.WriteFile(cs.filePath, []byte(data), 0600)
-}
-
-// LoadCredential loads and decrypts a credential.
-func (cs *CredentialStore) LoadCredential(name string) (string, error) {
-	creds := cs.loadAll()
-	encrypted, ok := creds[name]
-	if !ok {
-		return "", fmt.Errorf("credential '%s' not found", name)
-	}
-	return cs.mgr.Decrypt(encrypted)
-}
-
-// DeleteCredential removes a credential.
-func (cs *CredentialStore) DeleteCredential(name string) error {
-	creds := cs.loadAll()
-	delete(creds, name)
-
-	data := ""
-	for k, v := range creds {
-		data += k + "=" + v + "\n"
-	}
-	return os.WriteFile(cs.filePath, []byte(data), 0600)
-}
-
-// loadAll reads all credentials from the file.
-func (cs *CredentialStore) loadAll() map[string]string {
-	creds := make(map[string]string)
-	data, err := os.ReadFile(cs.filePath)
-	if err != nil {
-		return creds
-	}
-	for _, line := range splitLines(string(data)) {
-		if idx := indexOf(line, '='); idx > 0 {
-			key := line[:idx]
-			val := line[idx+1:]
-			creds[key] = val
-		}
-	}
-	return creds
-}
-
-func splitLines(s string) []string {
-	var lines []string
-	start := 0
-	for i := 0; i < len(s); i++ {
-		if s[i] == '\n' {
-			if i > start {
-				lines = append(lines, s[start:i])
-			}
-			start = i + 1
-		}
-	}
-	if start < len(s) {
-		lines = append(lines, s[start:])
-	}
-	return lines
-}
-
-func indexOf(s string, c byte) int {
-	for i := 0; i < len(s); i++ {
-		if s[i] == c {
-			return i
-		}
-	}
-	return -1
-}

@@ -103,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { processEquation, analyzeIons } from '../wails/app'
 
 const input = ref('')

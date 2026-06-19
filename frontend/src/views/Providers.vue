@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { listProviders, searchCompoundOnline, testProviderConnection } from '../wails/app'
+import { listProviders, searchCompoundOnline, testProviderConnection, setProviderEnabled } from '../wails/app'
 
 const providers = ref<any[]>([])
 const query = ref('')
@@ -85,8 +85,10 @@ onMounted(async () => {
   }
 })
 
-function toggleProvider(index: number) {
-  providers.value[index].enabled = !providers.value[index].enabled
+async function toggleProvider(index: number) {
+  const p = providers.value[index]
+  p.enabled = !p.enabled
+  await setProviderEnabled(p.name, p.enabled)
 }
 
 async function search() {

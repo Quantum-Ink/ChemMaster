@@ -110,38 +110,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { searchElements, searchCompounds } from '../wails/app'
+import { ref, onMounted } from 'vue'
+import { getAllElements, searchElements, searchCompounds } from '../wails/app'
 
 const searchType = ref<'elements' | 'compounds'>('elements')
 const query = ref('')
 const searchResults = ref<any[]>([])
 const selectedElement = ref<any>(null)
+const elements = ref<any[]>([])
 
-const elements = [
-  { symbol: 'H', nameEn: 'Hydrogen', nameCn: '氢', atomicNumber: 1, atomicMass: 1.008 },
-  { symbol: 'He', nameEn: 'Helium', nameCn: '氦', atomicNumber: 2, atomicMass: 4.003 },
-  { symbol: 'Li', nameEn: 'Lithium', nameCn: '锂', atomicNumber: 3, atomicMass: 6.941 },
-  { symbol: 'C', nameEn: 'Carbon', nameCn: '碳', atomicNumber: 6, atomicMass: 12.011 },
-  { symbol: 'N', nameEn: 'Nitrogen', nameCn: '氮', atomicNumber: 7, atomicMass: 14.007 },
-  { symbol: 'O', nameEn: 'Oxygen', nameCn: '氧', atomicNumber: 8, atomicMass: 15.999 },
-  { symbol: 'Na', nameEn: 'Sodium', nameCn: '钠', atomicNumber: 11, atomicMass: 22.990 },
-  { symbol: 'Mg', nameEn: 'Magnesium', nameCn: '镁', atomicNumber: 12, atomicMass: 24.305 },
-  { symbol: 'Al', nameEn: 'Aluminium', nameCn: '铝', atomicNumber: 13, atomicMass: 26.982 },
-  { symbol: 'Si', nameEn: 'Silicon', nameCn: '硅', atomicNumber: 14, atomicMass: 28.086 },
-  { symbol: 'P', nameEn: 'Phosphorus', nameCn: '磷', atomicNumber: 15, atomicMass: 30.974 },
-  { symbol: 'S', nameEn: 'Sulfur', nameCn: '硫', atomicNumber: 16, atomicMass: 32.065 },
-  { symbol: 'Cl', nameEn: 'Chlorine', nameCn: '氯', atomicNumber: 17, atomicMass: 35.453 },
-  { symbol: 'K', nameEn: 'Potassium', nameCn: '钾', atomicNumber: 19, atomicMass: 39.098 },
-  { symbol: 'Ca', nameEn: 'Calcium', nameCn: '钙', atomicNumber: 20, atomicMass: 40.078 },
-  { symbol: 'Fe', nameEn: 'Iron', nameCn: '铁', atomicNumber: 26, atomicMass: 55.845 },
-  { symbol: 'Cu', nameEn: 'Copper', nameCn: '铜', atomicNumber: 29, atomicMass: 63.546 },
-  { symbol: 'Zn', nameEn: 'Zinc', nameCn: '锌', atomicNumber: 30, atomicMass: 65.380 },
-  { symbol: 'Ag', nameEn: 'Silver', nameCn: '银', atomicNumber: 47, atomicMass: 107.87 },
-  { symbol: 'Au', nameEn: 'Gold', nameCn: '金', atomicNumber: 79, atomicMass: 196.97 },
-  { symbol: 'Hg', nameEn: 'Mercury', nameCn: '汞', atomicNumber: 80, atomicMass: 200.59 },
-  { symbol: 'Pb', nameEn: 'Lead', nameCn: '铅', atomicNumber: 82, atomicMass: 207.20 },
-]
+onMounted(async () => {
+  const all = await getAllElements() as any[]
+  if (all && all.length) {
+    elements.value = all
+  }
+})
 
 async function search() {
   if (!query.value.trim()) return

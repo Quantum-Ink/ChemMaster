@@ -114,15 +114,18 @@ onUnmounted(() => {
 })
 
 function minimizeWindow() {
-  // Wails window control - will be connected via runtime
+  const rt = (window as any).runtime
+  if (rt?.WindowMinimise) rt.WindowMinimise()
 }
 
 function maximizeWindow() {
-  // Wails window control
+  const rt = (window as any).runtime
+  if (rt?.WindowToggleMaximise) rt.WindowToggleMaximise()
 }
 
 function closeWindow() {
-  // Wails window control
+  const rt = (window as any).runtime
+  if (rt?.WindowClose) rt.WindowClose()
 }
 </script>
 

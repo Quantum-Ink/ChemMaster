@@ -104,10 +104,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { getSetting, setSetting } from '../wails/app'
 
 const alwaysOnTop = ref(false)
 const minimizeToTray = ref(true)
 const exportFormat = ref('unicode')
 const pngScale = ref('2x')
+
+onMounted(async () => {
+  alwaysOnTop.value = (await getSetting('alwaysOnTop')) === 'true'
+  minimizeToTray.value = (await getSetting('minimizeToTray')) !== 'false'
+  exportFormat.value = (await getSetting('exportFormat')) || 'unicode'
+  pngScale.value = (await getSetting('pngScale')) || '2x'
+})
+
+watch(alwaysOnTop, v => setSetting('alwaysOnTop', String(v)))
+watch(minimizeToTray, v => setSetting('minimizeToTray', String(v)))
+watch(exportFormat, v => setSetting('exportFormat', v))
+watch(pngScale, v => setSetting('pngScale', v))
 </script>

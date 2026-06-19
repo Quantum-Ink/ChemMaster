@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	"chemmaster/internal/database"
 )
 
 // ElementData holds information about a chemical element.
@@ -15,100 +17,20 @@ type ElementData struct {
 	AtomicMass   float64
 }
 
-// PeriodicTable contains all known elements.
-var PeriodicTable = map[string]ElementData{
-	"H":  {Symbol: "H", NameEN: "Hydrogen", NameCN: "氢", AtomicNumber: 1, AtomicMass: 1.008},
-	"He": {Symbol: "He", NameEN: "Helium", NameCN: "氦", AtomicNumber: 2, AtomicMass: 4.003},
-	"Li": {Symbol: "Li", NameEN: "Lithium", NameCN: "锂", AtomicNumber: 3, AtomicMass: 6.941},
-	"Be": {Symbol: "Be", NameEN: "Beryllium", NameCN: "铍", AtomicNumber: 4, AtomicMass: 9.012},
-	"B":  {Symbol: "B", NameEN: "Boron", NameCN: "硼", AtomicNumber: 5, AtomicMass: 10.81},
-	"C":  {Symbol: "C", NameEN: "Carbon", NameCN: "碳", AtomicNumber: 6, AtomicMass: 12.011},
-	"N":  {Symbol: "N", NameEN: "Nitrogen", NameCN: "氮", AtomicNumber: 7, AtomicMass: 14.007},
-	"O":  {Symbol: "O", NameEN: "Oxygen", NameCN: "氧", AtomicNumber: 8, AtomicMass: 15.999},
-	"F":  {Symbol: "F", NameEN: "Fluorine", NameCN: "氟", AtomicNumber: 9, AtomicMass: 18.998},
-	"Ne": {Symbol: "Ne", NameEN: "Neon", NameCN: "氖", AtomicNumber: 10, AtomicMass: 20.180},
-	"Na": {Symbol: "Na", NameEN: "Sodium", NameCN: "钠", AtomicNumber: 11, AtomicMass: 22.990},
-	"Mg": {Symbol: "Mg", NameEN: "Magnesium", NameCN: "镁", AtomicNumber: 12, AtomicMass: 24.305},
-	"Al": {Symbol: "Al", NameEN: "Aluminium", NameCN: "铝", AtomicNumber: 13, AtomicMass: 26.982},
-	"Si": {Symbol: "Si", NameEN: "Silicon", NameCN: "硅", AtomicNumber: 14, AtomicMass: 28.086},
-	"P":  {Symbol: "P", NameEN: "Phosphorus", NameCN: "磷", AtomicNumber: 15, AtomicMass: 30.974},
-	"S":  {Symbol: "S", NameEN: "Sulfur", NameCN: "硫", AtomicNumber: 16, AtomicMass: 32.065},
-	"Cl": {Symbol: "Cl", NameEN: "Chlorine", NameCN: "氯", AtomicNumber: 17, AtomicMass: 35.453},
-	"Ar": {Symbol: "Ar", NameEN: "Argon", NameCN: "氩", AtomicNumber: 18, AtomicMass: 39.948},
-	"K":  {Symbol: "K", NameEN: "Potassium", NameCN: "钾", AtomicNumber: 19, AtomicMass: 39.098},
-	"Ca": {Symbol: "Ca", NameEN: "Calcium", NameCN: "钙", AtomicNumber: 20, AtomicMass: 40.078},
-	"Sc": {Symbol: "Sc", NameEN: "Scandium", NameCN: "钪", AtomicNumber: 21, AtomicMass: 44.956},
-	"Ti": {Symbol: "Ti", NameEN: "Titanium", NameCN: "钛", AtomicNumber: 22, AtomicMass: 47.867},
-	"V":  {Symbol: "V", NameEN: "Vanadium", NameCN: "钒", AtomicNumber: 23, AtomicMass: 50.942},
-	"Cr": {Symbol: "Cr", NameEN: "Chromium", NameCN: "铬", AtomicNumber: 24, AtomicMass: 51.996},
-	"Mn": {Symbol: "Mn", NameEN: "Manganese", NameCN: "锰", AtomicNumber: 25, AtomicMass: 54.938},
-	"Fe": {Symbol: "Fe", NameEN: "Iron", NameCN: "铁", AtomicNumber: 26, AtomicMass: 55.845},
-	"Co": {Symbol: "Co", NameEN: "Cobalt", NameCN: "钴", AtomicNumber: 27, AtomicMass: 58.933},
-	"Ni": {Symbol: "Ni", NameEN: "Nickel", NameCN: "镍", AtomicNumber: 28, AtomicMass: 58.693},
-	"Cu": {Symbol: "Cu", NameEN: "Copper", NameCN: "铜", AtomicNumber: 29, AtomicMass: 63.546},
-	"Zn": {Symbol: "Zn", NameEN: "Zinc", NameCN: "锌", AtomicNumber: 30, AtomicMass: 65.380},
-	"Ga": {Symbol: "Ga", NameEN: "Gallium", NameCN: "镓", AtomicNumber: 31, AtomicMass: 69.723},
-	"Ge": {Symbol: "Ge", NameEN: "Germanium", NameCN: "锗", AtomicNumber: 32, AtomicMass: 72.630},
-	"As": {Symbol: "As", NameEN: "Arsenic", NameCN: "砷", AtomicNumber: 33, AtomicMass: 74.922},
-	"Se": {Symbol: "Se", NameEN: "Selenium", NameCN: "硒", AtomicNumber: 34, AtomicMass: 78.971},
-	"Br": {Symbol: "Br", NameEN: "Bromine", NameCN: "溴", AtomicNumber: 35, AtomicMass: 79.904},
-	"Kr": {Symbol: "Kr", NameEN: "Krypton", NameCN: "氪", AtomicNumber: 36, AtomicMass: 83.798},
-	"Rb": {Symbol: "Rb", NameEN: "Rubidium", NameCN: "铷", AtomicNumber: 37, AtomicMass: 85.468},
-	"Sr": {Symbol: "Sr", NameEN: "Strontium", NameCN: "锶", AtomicNumber: 38, AtomicMass: 87.620},
-	"Y":  {Symbol: "Y", NameEN: "Yttrium", NameCN: "钇", AtomicNumber: 39, AtomicMass: 88.906},
-	"Zr": {Symbol: "Zr", NameEN: "Zirconium", NameCN: "锆", AtomicNumber: 40, AtomicMass: 91.224},
-	"Nb": {Symbol: "Nb", NameEN: "Niobium", NameCN: "铌", AtomicNumber: 41, AtomicMass: 92.906},
-	"Mo": {Symbol: "Mo", NameEN: "Molybdenum", NameCN: "钼", AtomicNumber: 42, AtomicMass: 95.950},
-	"Tc": {Symbol: "Tc", NameEN: "Technetium", NameCN: "锝", AtomicNumber: 43, AtomicMass: 98.000},
-	"Ru": {Symbol: "Ru", NameEN: "Ruthenium", NameCN: "钌", AtomicNumber: 44, AtomicMass: 101.07},
-	"Rh": {Symbol: "Rh", NameEN: "Rhodium", NameCN: "铑", AtomicNumber: 45, AtomicMass: 102.91},
-	"Pd": {Symbol: "Pd", NameEN: "Palladium", NameCN: "钯", AtomicNumber: 46, AtomicMass: 106.42},
-	"Ag": {Symbol: "Ag", NameEN: "Silver", NameCN: "银", AtomicNumber: 47, AtomicMass: 107.87},
-	"Cd": {Symbol: "Cd", NameEN: "Cadmium", NameCN: "镉", AtomicNumber: 48, AtomicMass: 112.41},
-	"In": {Symbol: "In", NameEN: "Indium", NameCN: "铟", AtomicNumber: 49, AtomicMass: 114.82},
-	"Sn": {Symbol: "Sn", NameEN: "Tin", NameCN: "锡", AtomicNumber: 50, AtomicMass: 118.71},
-	"Sb": {Symbol: "Sb", NameEN: "Antimony", NameCN: "锑", AtomicNumber: 51, AtomicMass: 121.76},
-	"Te": {Symbol: "Te", NameEN: "Tellurium", NameCN: "碲", AtomicNumber: 52, AtomicMass: 127.60},
-	"I":  {Symbol: "I", NameEN: "Iodine", NameCN: "碘", AtomicNumber: 53, AtomicMass: 126.90},
-	"Xe": {Symbol: "Xe", NameEN: "Xenon", NameCN: "氙", AtomicNumber: 54, AtomicMass: 131.29},
-	"Cs": {Symbol: "Cs", NameEN: "Caesium", NameCN: "铯", AtomicNumber: 55, AtomicMass: 132.91},
-	"Ba": {Symbol: "Ba", NameEN: "Barium", NameCN: "钡", AtomicNumber: 56, AtomicMass: 137.33},
-	"La": {Symbol: "La", NameEN: "Lanthanum", NameCN: "镧", AtomicNumber: 57, AtomicMass: 138.91},
-	"Ce": {Symbol: "Ce", NameEN: "Cerium", NameCN: "铈", AtomicNumber: 58, AtomicMass: 140.12},
-	"Pr": {Symbol: "Pr", NameEN: "Praseodymium", NameCN: "镨", AtomicNumber: 59, AtomicMass: 140.91},
-	"Nd": {Symbol: "Nd", NameEN: "Neodymium", NameCN: "钕", AtomicNumber: 60, AtomicMass: 144.24},
-	"Pm": {Symbol: "Pm", NameEN: "Promethium", NameCN: "钷", AtomicNumber: 61, AtomicMass: 145.00},
-	"Sm": {Symbol: "Sm", NameEN: "Samarium", NameCN: "钐", AtomicNumber: 62, AtomicMass: 150.36},
-	"Eu": {Symbol: "Eu", NameEN: "Europium", NameCN: "铕", AtomicNumber: 63, AtomicMass: 151.96},
-	"Gd": {Symbol: "Gd", NameEN: "Gadolinium", NameCN: "钆", AtomicNumber: 64, AtomicMass: 157.25},
-	"Tb": {Symbol: "Tb", NameEN: "Terbium", NameCN: "铽", AtomicNumber: 65, AtomicMass: 158.93},
-	"Dy": {Symbol: "Dy", NameEN: "Dysprosium", NameCN: "镝", AtomicNumber: 66, AtomicMass: 162.50},
-	"Ho": {Symbol: "Ho", NameEN: "Holmium", NameCN: "钬", AtomicNumber: 67, AtomicMass: 164.93},
-	"Er": {Symbol: "Er", NameEN: "Erbium", NameCN: "铒", AtomicNumber: 68, AtomicMass: 167.26},
-	"Tm": {Symbol: "Tm", NameEN: "Thulium", NameCN: "铥", AtomicNumber: 69, AtomicMass: 168.93},
-	"Yb": {Symbol: "Yb", NameEN: "Ytterbium", NameCN: "镱", AtomicNumber: 70, AtomicMass: 173.05},
-	"Lu": {Symbol: "Lu", NameEN: "Lutetium", NameCN: "镥", AtomicNumber: 71, AtomicMass: 174.97},
-	"Hf": {Symbol: "Hf", NameEN: "Hafnium", NameCN: "铪", AtomicNumber: 72, AtomicMass: 178.49},
-	"Ta": {Symbol: "Ta", NameEN: "Tantalum", NameCN: "钽", AtomicNumber: 73, AtomicMass: 180.95},
-	"W":  {Symbol: "W", NameEN: "Tungsten", NameCN: "钨", AtomicNumber: 74, AtomicMass: 183.84},
-	"Re": {Symbol: "Re", NameEN: "Rhenium", NameCN: "铼", AtomicNumber: 75, AtomicMass: 186.21},
-	"Os": {Symbol: "Os", NameEN: "Osmium", NameCN: "锇", AtomicNumber: 76, AtomicMass: 190.23},
-	"Ir": {Symbol: "Ir", NameEN: "Iridium", NameCN: "铱", AtomicNumber: 77, AtomicMass: 192.22},
-	"Pt": {Symbol: "Pt", NameEN: "Platinum", NameCN: "铂", AtomicNumber: 78, AtomicMass: 195.08},
-	"Au": {Symbol: "Au", NameEN: "Gold", NameCN: "金", AtomicNumber: 79, AtomicMass: 196.97},
-	"Hg": {Symbol: "Hg", NameEN: "Mercury", NameCN: "汞", AtomicNumber: 80, AtomicMass: 200.59},
-	"Tl": {Symbol: "Tl", NameEN: "Thallium", NameCN: "铊", AtomicNumber: 81, AtomicMass: 204.38},
-	"Pb": {Symbol: "Pb", NameEN: "Lead", NameCN: "铅", AtomicNumber: 82, AtomicMass: 207.20},
-	"Bi": {Symbol: "Bi", NameEN: "Bismuth", NameCN: "铋", AtomicNumber: 83, AtomicMass: 208.98},
-	"Po": {Symbol: "Po", NameEN: "Polonium", NameCN: "钋", AtomicNumber: 84, AtomicMass: 209.00},
-	"At": {Symbol: "At", NameEN: "Astatine", NameCN: "砹", AtomicNumber: 85, AtomicMass: 210.00},
-	"Rn": {Symbol: "Rn", NameEN: "Radon", NameCN: "氡", AtomicNumber: 86, AtomicMass: 222.00},
-	"Fr": {Symbol: "Fr", NameEN: "Francium", NameCN: "钫", AtomicNumber: 87, AtomicMass: 223.00},
-	"Ra": {Symbol: "Ra", NameEN: "Radium", NameCN: "镭", AtomicNumber: 88, AtomicMass: 226.00},
-	"Ac": {Symbol: "Ac", NameEN: "Actinium", NameCN: "锕", AtomicNumber: 89, AtomicMass: 227.00},
-	"Th": {Symbol: "Th", NameEN: "Thorium", NameCN: "钍", AtomicNumber: 90, AtomicMass: 232.04},
-	"Pa": {Symbol: "Pa", NameEN: "Protactinium", NameCN: "镤", AtomicNumber: 91, AtomicMass: 231.04},
-	"U":  {Symbol: "U", NameEN: "Uranium", NameCN: "铀", AtomicNumber: 92, AtomicMass: 238.03},
+// PeriodicTable is built from database.AllElements at init time.
+var PeriodicTable map[string]ElementData
+
+func init() {
+	PeriodicTable = make(map[string]ElementData, len(database.AllElements))
+	for _, e := range database.AllElements {
+		PeriodicTable[e.Symbol] = ElementData{
+			Symbol:       e.Symbol,
+			NameEN:       e.NameEN,
+			NameCN:       e.NameCN,
+			AtomicNumber: e.AtomicNumber,
+			AtomicMass:   e.AtomicMass,
+		}
+	}
 }
 
 // SubscriptDigits maps digits to Unicode subscript characters.
@@ -185,32 +107,34 @@ func (fe *FormulaEngine) parseFormula(formula string) (map[string]int, error) {
 
 	for i < n {
 		if formula[i] == '(' || formula[i] == '[' {
-			// Extract bracketed content
 			content, endIdx, err := fe.extractBracket(formula, i)
 			if err != nil {
 				return nil, err
 			}
-			// Get multiplier after bracket
 			multiplier, newIdx := fe.extractNumber(formula, endIdx)
-			// Recursively parse inner content
 			inner, err := fe.parseFormula(content)
 			if err != nil {
 				return nil, err
 			}
-			// Multiply counts
 			for elem, count := range inner {
 				result[elem] += count * multiplier
 			}
 			i = newIdx
 		} else if formula[i] >= 'A' && formula[i] <= 'Z' {
-			// Extract element symbol
 			elem, newI := fe.extractElement(formula, i)
+			if _, ok := PeriodicTable[elem]; !ok {
+				return nil, fmt.Errorf("unknown element: %s", elem)
+			}
 			count, newI2 := fe.extractNumber(formula, newI)
 			result[elem] += count
 			i = newI2
 		} else {
-			i++
+			return nil, fmt.Errorf("unexpected character '%c' at position %d", formula[i], i)
 		}
+	}
+
+	if len(result) == 0 {
+		return nil, fmt.Errorf("empty formula")
 	}
 
 	return result, nil

@@ -2,7 +2,6 @@ package chemistry
 
 import (
 	"fmt"
-	"math"
 	"regexp"
 	"sort"
 	"strings"
@@ -307,5 +306,5 @@ func ToUnicodeCharge(charge int) string {
 	if charge > 0 {
 		return fmt.Sprintf("%d⁺", charge)
 	}
-	return fmt.Sprintf("%d⁻", int(math.Abs(float64(charge))))
+	return fmt.Sprintf("%d⁻", -charge)
 }

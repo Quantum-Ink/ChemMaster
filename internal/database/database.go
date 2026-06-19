@@ -121,53 +121,15 @@ func (db *DB) createTables() error {
 	return err
 }
 
-// seedData populates initial element data.
+// seedData populates initial element data from AllElements.
 func (db *DB) seedData() error {
-	// Check if elements table is already populated
 	var count int
 	err := db.conn.QueryRow("SELECT COUNT(*) FROM elements").Scan(&count)
 	if err != nil {
 		return err
 	}
 	if count > 0 {
-		return nil // Already seeded
-	}
-
-	// Seed elements from the periodic table
-	elements := []struct {
-		Symbol       string
-		NameEN       string
-		NameCN       string
-		AtomicNumber int
-		AtomicMass   float64
-	}{
-		{"H", "Hydrogen", "氢", 1, 1.008},
-		{"He", "Helium", "氦", 2, 4.003},
-		{"Li", "Lithium", "锂", 3, 6.941},
-		{"Be", "Beryllium", "铍", 4, 9.012},
-		{"B", "Boron", "硼", 5, 10.81},
-		{"C", "Carbon", "碳", 6, 12.011},
-		{"N", "Nitrogen", "氮", 7, 14.007},
-		{"O", "Oxygen", "氧", 8, 15.999},
-		{"F", "Fluorine", "氟", 9, 18.998},
-		{"Ne", "Neon", "氖", 10, 20.180},
-		{"Na", "Sodium", "钠", 11, 22.990},
-		{"Mg", "Magnesium", "镁", 12, 24.305},
-		{"Al", "Aluminium", "铝", 13, 26.982},
-		{"Si", "Silicon", "硅", 14, 28.086},
-		{"P", "Phosphorus", "磷", 15, 30.974},
-		{"S", "Sulfur", "硫", 16, 32.065},
-		{"Cl", "Chlorine", "氯", 17, 35.453},
-		{"Ar", "Argon", "氩", 18, 39.948},
-		{"K", "Potassium", "钾", 19, 39.098},
-		{"Ca", "Calcium", "钙", 20, 40.078},
-		{"Fe", "Iron", "铁", 26, 55.845},
-		{"Cu", "Copper", "铜", 29, 63.546},
-		{"Zn", "Zinc", "锌", 30, 65.380},
-		{"Ag", "Silver", "银", 47, 107.87},
-		{"Au", "Gold", "金", 79, 196.97},
-		{"Hg", "Mercury", "汞", 80, 200.59},
-		{"Pb", "Lead", "铅", 82, 207.20},
+		return nil
 	}
 
 	tx, err := db.conn.Begin()
@@ -182,7 +144,7 @@ func (db *DB) seedData() error {
 	}
 	defer stmt.Close()
 
-	for _, e := range elements {
+	for _, e := range AllElements {
 		if _, err := stmt.Exec(e.Symbol, e.NameEN, e.NameCN, e.AtomicNumber, e.AtomicMass); err != nil {
 			tx.Rollback()
 			return err

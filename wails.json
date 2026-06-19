@@ -8,8 +8,7 @@
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
-    "name": "Quantum-Ink",
-    "email": "quantum-ink@example.com"
+    "name": "Quantum-Ink"
   },
   "info": {
     "companyName": "ChemMaster",

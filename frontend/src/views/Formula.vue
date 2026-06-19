@@ -59,11 +59,11 @@
             </thead>
             <tbody>
               <tr v-for="(count, elem) in result.elements" :key="elem">
-                <td>{{ getElementName(elem as string) }}</td>
+                <td>{{ getElementName(elem) }}</td>
                 <td style="font-weight: 600; color: var(--accent);">{{ elem }}</td>
                 <td>{{ count }}</td>
-                <td>{{ getElementMass(elem as string) }}</td>
-                <td>{{ (getElementMass(elem as string) * count).toFixed(3) }}</td>
+                <td>{{ getElementMass(elem) }}</td>
+                <td>{{ (getElementMass(elem) * count).toFixed(3) }}</td>
               </tr>
             </tbody>
           </table>
@@ -108,38 +108,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { parseFormula } from '../wails/app'
+import { ref, onMounted } from 'vue'
+import { parseFormula, getAllElements } from '../wails/app'
 
 const input = ref('')
 const result = ref<any>(null)
 const viewMode = ref('subscript')
 const copied = ref(false)
 
-const elementMasses: Record<string, number> = {
-  H: 1.008, He: 4.003, Li: 6.941, Be: 9.012, B: 10.81, C: 12.011,
-  N: 14.007, O: 15.999, F: 18.998, Ne: 20.18, Na: 22.99, Mg: 24.305,
-  Al: 26.982, Si: 28.086, P: 30.974, S: 32.065, Cl: 35.453, Ar: 39.948,
-  K: 39.098, Ca: 40.078, Fe: 55.845, Cu: 63.546, Zn: 65.38, Ag: 107.87,
-  Au: 196.97, Hg: 200.59, Pb: 207.2, Mn: 55.938, Cr: 51.996, Ni: 58.693,
-  Ba: 137.33, Sr: 87.62, Br: 79.904, I: 126.9, Ti: 47.867, V: 50.942,
+const elementMasses: Record<string, number> = {}
+const elementNames: Record<string, string> = {}
+
+onMounted(async () => {
+  const all = await getAllElements() as any[]
+  if (all) {
+    for (const e of all) {
+      elementMasses[e.symbol] = e.atomicMass
+      elementNames[e.symbol] = e.nameCn
+    }
+  }
+})
+
+function getElementMass(symbol: any): number {
+  return elementMasses[String(symbol)] || 0
 }
 
-const elementNames: Record<string, string> = {
-  H: '氢', He: '氦', Li: '锂', Be: '铍', B: '硼', C: '碳',
-  N: '氮', O: '氧', F: '氟', Ne: '氖', Na: '钠', Mg: '镁',
-  Al: '铝', Si: '硅', P: '磷', S: '硫', Cl: '氯', Ar: '氩',
-  K: '钾', Ca: '钙', Fe: '铁', Cu: '铜', Zn: '锌', Ag: '银',
-  Au: '金', Hg: '汞', Pb: '铅', Mn: '锰', Cr: '铬', Ni: '镍',
-  Ba: '钡', Sr: '锶', Br: '溴', I: '碘', Ti: '钛', V: '钒',
-}
-
-function getElementMass(symbol: string): number {
-  return elementMasses[symbol] || 0
-}
-
-function getElementName(symbol: string): string {
-  return elementNames[symbol] || symbol
+function getElementName(symbol: any): string {
+  return elementNames[String(symbol)] || String(symbol)
 }
 
 async function parse() {

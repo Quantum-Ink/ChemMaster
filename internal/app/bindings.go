@@ -94,6 +94,18 @@ func (a *App) SearchElements(query string) interface{} {
 	return results
 }
 
+// GetAllElements returns all elements from the database.
+func (a *App) GetAllElements() interface{} {
+	if a.db == nil {
+		return []interface{}{}
+	}
+	results, err := a.db.SearchElements("")
+	if err != nil {
+		return map[string]string{"error": err.Error()}
+	}
+	return results
+}
+
 // SearchCompounds searches compounds by name or formula.
 func (a *App) SearchCompounds(query string) interface{} {
 	if a.db == nil {
@@ -118,6 +130,11 @@ func (a *App) ListProviders() []provider.Provider {
 // SearchCompoundOnline searches for a compound across all providers.
 func (a *App) SearchCompoundOnline(query string) ([]provider.CompoundInfo, error) {
 	return a.providerMgr.SearchCompound(query)
+}
+
+// SetProviderEnabled enables or disables a provider.
+func (a *App) SetProviderEnabled(name string, enabled bool) error {
+	return a.providerMgr.SetProviderEnabled(name, enabled)
 }
 
 // TestProviderConnection tests a provider's connectivity.

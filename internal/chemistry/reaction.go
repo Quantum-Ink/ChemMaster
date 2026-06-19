@@ -42,6 +42,9 @@ type IonicEquationResult struct {
 	ProductChg   int      `json:"productCharges"`
 }
 
+// stateRegex matches state markers like (s), (l), (g), (aq).
+var stateRegex = regexp.MustCompile(`\(([sgla]q?)\)\s*$`)
+
 // ReactionEngine provides high-level reaction processing.
 type ReactionEngine struct {
 	fe       *FormulaEngine
@@ -100,8 +103,6 @@ func (re *ReactionEngine) parseSpecies(term string) ReactionSpecies {
 	term = strings.TrimSpace(term)
 	s := ReactionSpecies{Coefficient: 1}
 
-	// Extract state markers
-	stateRegex := regexp.MustCompile(`\(([sgla]q?)\)\s*$`)
 	if m := stateRegex.FindStringSubmatch(term); m != nil {
 		s.State = m[1]
 		term = strings.TrimSpace(term[:len(term)-len(m[0])])
