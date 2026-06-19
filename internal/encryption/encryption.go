@@ -94,8 +94,13 @@ type CredentialStore struct {
 }
 
 // NewCredentialStore creates a new credential store.
+// Credentials are stored encrypted at ~/.chemmaster/credentials.enc.
 func NewCredentialStore() *CredentialStore {
-	home, _ := os.UserHomeDir()
+	home, err := os.UserHomeDir()
+	if err != nil {
+		// Fallback to current directory if home is unavailable
+		home = "."
+	}
 	storePath := filepath.Join(home, ".chemmaster", "credentials.enc")
 	return &CredentialStore{
 		mgr:      NewManager(),
