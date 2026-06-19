@@ -295,11 +295,11 @@ func (db *DB) SetSetting(key, value string) error {
 	return err
 }
 
-// CacheGet retrieves a cached value.
+// CacheGet retrieves a cached value if it hasn't expired.
 func (db *DB) CacheGet(key string) (string, bool) {
 	var value string
 	err := db.conn.QueryRow(
-		"SELECT value FROM api_cache WHERE key = ? AND (expires_at IS NULL OR expires_at > strftime('%%s','now'))",
+		"SELECT value FROM api_cache WHERE key = ? AND (expires_at IS NULL OR expires_at > strftime('%s','now'))",
 		key,
 	).Scan(&value)
 	if err != nil {
@@ -311,7 +311,7 @@ func (db *DB) CacheGet(key string) (string, bool) {
 // CacheSet stores a value in the cache with TTL in seconds.
 func (db *DB) CacheSet(key, value, source string, ttlSeconds int) error {
 	_, err := db.conn.Exec(
-		"INSERT OR REPLACE INTO api_cache (key, value, source, expires_at) VALUES (?, ?, ?, strftime('%%s','now') + ?)",
+		"INSERT OR REPLACE INTO api_cache (key, value, source, expires_at) VALUES (?, ?, ?, strftime('%s','now') + ?)",
 		key, value, source, ttlSeconds,
 	)
 	return err

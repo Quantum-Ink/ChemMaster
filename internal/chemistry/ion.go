@@ -74,6 +74,16 @@ var weakElectrolytes = map[string]bool{
 	"CH3COOH": true, "NH3·H2O": true,
 }
 
+// ionSuffixRegex matches ion patterns like SO4^2-, Fe3+.
+// Pre-compiled to avoid recompilation in hot paths.
+var ionSuffixRegex = regexp.MustCompile(`\^[0-9]*[+-]`)
+
+// chargeRegex matches charge patterns at end of string.
+var chargeRegex = regexp.MustCompile(`\^?(\d*)([+-])$`)
+
+// ionParseRegex matches ion strings for ParseIon.
+var ionParseRegex = regexp.MustCompile(`^(.+?)(\d*)([+-])$`)
+
 // DissociationMap maps compounds to their ions.
 var dissociationMap = map[string][]string{
 	"HCl": {"H+", "Cl-"}, "HBr": {"H+", "Br-"}, "HI": {"H+", "I-"},
@@ -219,10 +229,10 @@ func (ie *IonEngine) dissociate(formula string) []string {
 	return []string{formula}
 }
 
-// isIon checks if a term is an ion.
+// isIon checks if a term is an ion (e.g. "H+", "SO4^2-").
 func (ie *IonEngine) isIon(term string) bool {
 	return strings.HasSuffix(term, "+") || strings.HasSuffix(term, "-") ||
-		regexp.MustCompile(`\^[0-9]*[+-]`).MatchString(term)
+		ionSuffixRegex.MatchString(term)
 }
 
 // totalCharge calculates the total charge of a list of ionic terms.
@@ -236,11 +246,9 @@ func (ie *IonEngine) totalCharge(terms []string) int {
 	return total
 }
 
-// getCharge extracts the charge from an ion formula.
+// getCharge extracts the charge from an ion formula like "SO4^2-" → -2, "Fe3+" → 3.
 func (ie *IonEngine) getCharge(formula string) int {
-	// Match patterns like SO4^2-, Fe3+, H+, OH-
-	re := regexp.MustCompile(`\^?(\d*)([+-])$`)
-	matches := re.FindStringSubmatch(formula)
+	matches := chargeRegex.FindStringSubmatch(formula)
 	if matches == nil {
 		return 0
 	}
@@ -265,8 +273,7 @@ func (ie *IonEngine) BalanceIonEquation(equation string) BalanceResult {
 func (ie *IonEngine) ParseIon(ionStr string) Ion {
 	ion := Ion{Formula: ionStr}
 
-	re := regexp.MustCompile(`^(.+?)(\d*)([+-])$`)
-	matches := re.FindStringSubmatch(ionStr)
+	matches := ionParseRegex.FindStringSubmatch(ionStr)
 	if matches == nil {
 		ion.Symbol = ionStr
 		return ion

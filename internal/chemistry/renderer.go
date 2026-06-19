@@ -5,14 +5,18 @@ import (
 	"strings"
 )
 
-// Renderer handles LaTeX and export rendering for chemical formulas and equations.
+// Renderer handles LaTeX, HTML, Unicode export rendering for chemical formulas and equations.
 type Renderer struct {
-	fe *FormulaEngine
+	fe       *FormulaEngine
+	balancer *EquationBalancer
 }
 
 // NewRenderer creates a new Renderer.
 func NewRenderer() *Renderer {
-	return &Renderer{fe: NewFormulaEngine()}
+	return &Renderer{
+		fe:       NewFormulaEngine(),
+		balancer: NewEquationBalancer(),
+	}
 }
 
 // RenderResult contains multiple render formats.
@@ -33,10 +37,9 @@ func (r *Renderer) RenderFormula(formula string) RenderResult {
 	}
 }
 
-// RenderEquation renders a chemical equation in multiple formats.
+// RenderEquation renders a chemical equation in LaTeX, Markdown, HTML, and Unicode formats.
 func (r *Renderer) RenderEquation(equation string) RenderResult {
-	balancer := NewEquationBalancer()
-	balanceResult := balancer.Balance(equation)
+	balanceResult := r.balancer.Balance(equation)
 	balanced := balanceResult.Balanced
 	if balanced == "" {
 		balanced = equation
@@ -147,7 +150,7 @@ func (r *Renderer) equationToHTML(equation string) string {
 
 	var rParts []string
 	for _, t := range reactants {
-		c, formula := NewEquationBalancer().extractCoeff(t)
+		c, formula := r.balancer.extractCoeff(t)
 		html := r.formulaToHTML(formula)
 		if c > 1 {
 			rParts = append(rParts, fmt.Sprintf("%d%s", c, html))
@@ -158,7 +161,7 @@ func (r *Renderer) equationToHTML(equation string) string {
 
 	var pParts []string
 	for _, t := range products {
-		c, formula := NewEquationBalancer().extractCoeff(t)
+		c, formula := r.balancer.extractCoeff(t)
 		html := r.formulaToHTML(formula)
 		if c > 1 {
 			pParts = append(pParts, fmt.Sprintf("%d%s", c, html))
@@ -170,11 +173,8 @@ func (r *Renderer) equationToHTML(equation string) string {
 	return strings.Join(rParts, " + ") + " " + htmlSep + " " + strings.Join(pParts, " + ")
 }
 
-// equationToUnicode converts an equation to Unicode.
+// equationToUnicode converts an equation to Unicode subscript format.
 func (r *Renderer) equationToUnicode(equation string) string {
-	fe := NewFormulaEngine()
-	balancer := NewEquationBalancer()
-
 	separators := []string{"<=>", "⇌", "⇋", "->", "→", "⟶"}
 	sep := "->"
 	for _, s := range separators {
@@ -199,8 +199,8 @@ func (r *Renderer) equationToUnicode(equation string) string {
 
 	var rParts []string
 	for _, t := range reactants {
-		c, formula := balancer.extractCoeff(t)
-		sub := fe.ToSubscript(formula)
+		c, formula := r.balancer.extractCoeff(t)
+		sub := r.fe.ToSubscript(formula)
 		if c > 1 {
 			rParts = append(rParts, fmt.Sprintf("%d%s", c, sub))
 		} else {
@@ -210,8 +210,8 @@ func (r *Renderer) equationToUnicode(equation string) string {
 
 	var pParts []string
 	for _, t := range products {
-		c, formula := balancer.extractCoeff(t)
-		sub := fe.ToSubscript(formula)
+		c, formula := r.balancer.extractCoeff(t)
+		sub := r.fe.ToSubscript(formula)
 		if c > 1 {
 			pParts = append(pParts, fmt.Sprintf("%d%s", c, sub))
 		} else {

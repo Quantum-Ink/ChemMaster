@@ -129,14 +129,15 @@ func (m *Manager) SearchCompound(query string) ([]CompoundInfo, error) {
 }
 
 // PubChemResponse represents a PubChem API response.
+// See: https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest
 type PubChemResponse struct {
 	PropertyTable struct {
 		Properties []struct {
-			CID          int     `json:"CID"`
-			MolecularFormula string `json:"MolecularFormula"`
+			CID              int     `json:"CID"`
+			MolecularFormula string  `json:"MolecularFormula"`
 			MolecularWeight  float64 `json:"MolecularWeight"`
-			IUPAC㎎    string  `json:"IUPACName"`
-			CAN          string  `json:"CanonicalSMILES"`
+			IUPACName        string  `json:"IUPACName"`
+			CanonicalSMILES  string  `json:"CanonicalSMILES"`
 		} `json:"Properties"`
 	} `json:"PropertyTable"`
 }
@@ -173,7 +174,7 @@ func (m *Manager) searchPubChem(query string) ([]CompoundInfo, error) {
 			Name:            prop.IUPACName,
 			Formula:         prop.MolecularFormula,
 			MolecularWeight: prop.MolecularWeight,
-			SMILES:          prop.CAN,
+			SMILES:          prop.CanonicalSMILES,
 			Source:          "pubchem",
 		})
 	}
