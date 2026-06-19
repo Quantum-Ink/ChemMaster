@@ -1,26 +1,22 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.egg-info/
-*.egg
-dist/
-build/
-eggs/
-*.whl
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
 
-# PyInstaller
-*.spec
-*.manifest
-
-# Virtual environments
-.venv/
-venv/
-ENV/
+# Wails
+frontend/dist
+frontend/node_modules
+frontend/wailsjs
+build/bin
 
 # IDE
-.idea/
-.vscode/
+.idea
+.vscode
 *.swp
 *.swo
 
@@ -28,16 +24,15 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Environment
-.env
-.env.local
-
-# Database (runtime generated)
+# Project
 *.db
-*.sqlite3
+*.db-journal
+/tmp
 
-# Logs
-*.log
-
-# Claude Code
-.claude/
+# Python (legacy)
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.spec
