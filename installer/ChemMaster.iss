@@ -2,7 +2,7 @@
 ; Requires Inno Setup 6+ (https://jrsoftware.org/isinfo.php)
 
 #define MyAppName "ChemMaster"
-#define MyAppVersion "1.0.2"
+#define MyAppVersion "1.0.7"
 #define MyAppPublisher "ChemMaster"
 #define MyAppURL "https://github.com/Quantum-Ink/ChemMaster"
 #define MyAppExeName "ChemMaster.exe"
@@ -30,7 +30,6 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 
 [Languages]
-Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
