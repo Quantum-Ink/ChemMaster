@@ -32,8 +32,9 @@
             <div style="font-size: 12px; color: var(--text-muted);">{{ p.description }}</div>
             <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
               v{{ p.version }} · {{ p.category }}
-              <span v-if="p.initialized" style="color: var(--success);"> · ✓ 已初始化</span>
-              <span v-else style="color: var(--error);"> · ✗ 未初始化</span>
+              <span v-if="p.status === 'ready'" style="color: var(--success);"> · ✓ 就绪</span>
+              <span v-else-if="p.status === 'dev'" style="color: var(--warning);"> · ⚒ 开发中</span>
+              <span v-else style="color: var(--text-muted);"> · ◻ 预留</span>
             </div>
           </div>
         </div>
@@ -91,19 +92,21 @@ onMounted(async () => {
     plugins.value = result
   } else {
     plugins.value = [
-      { name: 'formula-parser', version: '1.0.0', description: '化学式解析引擎', category: 'parser', enabled: true, initialized: true },
-      { name: 'equation-balancer', version: '1.0.0', description: '方程式配平（矩阵法）', category: 'solver', enabled: true, initialized: true },
-      { name: 'ion-engine', version: '1.0.0', description: '离子方程式分析', category: 'solver', enabled: true, initialized: true },
-      { name: 'latex-export', version: '1.0.0', description: 'LaTeX 格式导出', category: 'export', enabled: true, initialized: true },
-      { name: 'png-export', version: '1.0.0', description: 'PNG 图片导出', category: 'export', enabled: true, initialized: true },
-      { name: 'local-database', version: '1.0.0', description: '本地 SQLite 化学数据库', category: 'database', enabled: true, initialized: true },
-      { name: 'pubchem-provider', version: '1.0.0', description: 'PubChem API 数据源', category: 'database', enabled: true, initialized: true },
+      { name: 'formula-parser', version: '1.0.0', description: '化学式解析引擎', category: 'parser', enabled: true, initialized: true, status: 'ready' },
+      { name: 'equation-balancer', version: '1.0.0', description: '方程式配平（矩阵法）', category: 'solver', enabled: true, initialized: true, status: 'ready' },
+      { name: 'ion-engine', version: '1.0.0', description: '离子方程式分析', category: 'solver', enabled: true, initialized: true, status: 'ready' },
+      { name: 'latex-export', version: '1.0.0', description: 'LaTeX 格式导出', category: 'export', enabled: true, initialized: true, status: 'ready' },
+      { name: 'svg-png-export', version: '1.0.0', description: 'SVG/PNG 分子图导出', category: 'export', enabled: true, initialized: true, status: 'ready' },
+      { name: 'local-database', version: '1.0.0', description: '本地 SQLite 元素/化合物库', category: 'database', enabled: true, initialized: true, status: 'ready' },
+      { name: 'pubchem-provider', version: '0.9.0', description: 'PubChem API 数据查询', category: 'database', enabled: true, initialized: true, status: 'ready' },
+      { name: 'mol-editor', version: '1.0.0', description: '分子结构画布编辑器', category: 'editor', enabled: true, initialized: true, status: 'ready' },
+      { name: 'ai-assistant', version: '0.0.0', description: 'AI 化学助手 (预留)', category: 'ai', enabled: false, initialized: false, status: 'placeholder' },
     ]
   }
 })
 
 function categoryIcon(cat: string): string {
-  const icons: Record<string, string> = { parser: '🔬', solver: '⚖️', database: '🗄️', export: '📤', ai: '🤖' }
+  const icons: Record<string, string> = { parser: '🔬', solver: '⚖️', database: '🗄️', export: '📤', ai: '🤖', editor: '🧬' }
   return icons[cat] || '📦'
 }
 

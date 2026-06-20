@@ -58,8 +58,8 @@
       <div class="titlebar">
         <span class="titlebar-title">ChemMaster v1.0.2</span>
         <div class="titlebar-controls">
-          <button class="titlebar-btn minimize" @click="windowMinimize">─</button>
-          <button class="titlebar-btn maximize" @click="windowMaximize">□</button>
+          <button class="titlebar-btn minimize" @click="windowMinimize">🗕</button>
+          <button class="titlebar-btn maximize" @click="windowMaximize">🗖</button>
           <button class="titlebar-btn close" @click="windowClose">✕</button>
         </div>
       </div>
