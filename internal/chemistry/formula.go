@@ -128,6 +128,14 @@ func (fe *FormulaEngine) parseFormula(formula string) (map[string]int, error) {
 			count, newI2 := fe.extractNumber(formula, newI)
 			result[elem] += count
 			i = newI2
+		} else if formula[i] == '+' || formula[i] == '-' {
+			// Skip charge markers (e.g. NH4+, SO4 2-)
+			i++
+			for i < n && (formula[i] >= '0' && formula[i] <= '9') {
+				i++
+			}
+		} else if formula[i] == ' ' {
+			i++
 		} else {
 			return nil, fmt.Errorf("unexpected character '%c' at position %d", formula[i], i)
 		}

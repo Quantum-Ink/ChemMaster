@@ -278,13 +278,13 @@ func (eb *EquationBalancer) solveNullSpace(matrix [][]float64, n int) []float64 
 	return solution
 }
 
+// frac represents a rational number as numerator/denominator.
+type frac struct {
+	num, den int64
+}
+
 // toIntegerCoefficients converts float coefficients to smallest positive integers.
 func (eb *EquationBalancer) toIntegerCoefficients(coeffs []float64) []int {
-	// Convert to fractions using continued fraction approximation
-	type frac struct {
-		num, den int64
-	}
-
 	fracs := make([]frac, len(coeffs))
 	for i, c := range coeffs {
 		fracs[i] = floatToFraction(c, 10000)

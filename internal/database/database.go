@@ -151,7 +151,12 @@ func (db *DB) seedData() error {
 		}
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	// Seed common compounds
+	return db.seedCompounds()
 }
 
 // Query methods exposed to frontend
@@ -184,6 +189,88 @@ func (db *DB) SearchElements(query string) ([]ElementResult, error) {
 	rows, err := db.conn.Query(
 		"SELECT symbol, name_en, name_cn, atomic_number, atomic_mass FROM elements WHERE symbol LIKE ? OR name_en LIKE ? OR name_cn LIKE ?",
 		"%"+query+"%", "%"+query+"%", "%"+query+"%",
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []ElementResult
+	for rows.Next() {
+		var e ElementResult
+		if err := rows.Scan(&e.Symbol, &e.NameEN, &e.NameCN, &e.AtomicNumber, &e.AtomicMass); err != nil {
+			continue
+		}
+		results = append(results, e)
+	}
+	return results, nil
+}
+
+// seedCompounds seeds common compounds if the table is empty.
+func (db *DB) seedCompounds() error {
+	var count int
+	if err := db.conn.QueryRow("SELECT COUNT(*) FROM compounds").Scan(&count); err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil
+	}
+
+	compounds := []struct {
+		Name, NameCN, Formula, CAS string
+		MW                         float64
+	}{
+		{"Water", "水", "H2O", "7732-18-5", 18.015},
+		{"Sodium chloride", "氯化钠", "NaCl", "7647-14-5", 58.443},
+		{"Sulfuric acid", "硫酸", "H2SO4", "7664-93-9", 98.079},
+		{"Hydrochloric acid", "盐酸", "HCl", "7647-01-0", 36.461},
+		{"Sodium hydroxide", "氢氧化钠", "NaOH", "1310-73-2", 39.997},
+		{"Calcium carbonate", "碳酸钙", "CaCO3", "471-34-1", 100.087},
+		{"Glucose", "葡萄糖", "C6H12O6", "50-99-7", 180.156},
+		{"Ethanol", "乙醇", "C2H5OH", "64-17-5", 46.069},
+		{"Acetic acid", "乙酸", "CH3COOH", "64-19-7", 60.052},
+		{"Carbon dioxide", "二氧化碳", "CO2", "124-38-9", 44.010},
+		{"Ammonia", "氨", "NH3", "7664-41-7", 17.031},
+		{"Methane", "甲烷", "CH4", "74-82-8", 16.043},
+		{"Iron(III) oxide", "氧化铁", "Fe2O3", "1309-37-1", 159.687},
+		{"Copper(II) sulfate", "硫酸铜", "CuSO4", "7758-98-7", 159.609},
+		{"Potassium permanganate", "高锰酸钾", "KMnO4", "7722-64-7", 158.034},
+		{"Calcium hydroxide", "氢氧化钙", "Ca(OH)2", "1305-62-0", 74.093},
+		{"Aluminium sulfate", "硫酸铝", "Al2(SO4)3", "10043-01-3", 342.151},
+		{"Sodium carbonate", "碳酸钠", "Na2CO3", "497-19-8", 105.989},
+		{"Hydrogen peroxide", "过氧化氢", "H2O2", "7722-84-1", 34.015},
+		{"Nitric acid", "硝酸", "HNO3", "7697-37-2", 63.013},
+		{"Phosphoric acid", "磷酸", "H3PO4", "7664-38-2", 97.995},
+		{"Potassium dichromate", "重铬酸钾", "K2Cr2O7", "7778-50-9", 294.185},
+		{"Silver nitrate", "硝酸银", "AgNO3", "7761-88-8", 169.873},
+		{"Barium sulfate", "硫酸钡", "BaSO4", "7727-43-7", 233.391},
+		{"Sodium bicarbonate", "碳酸氢钠", "NaHCO3", "144-55-8", 84.007},
+	}
+
+	tx, err := db.conn.Begin()
+	if err != nil {
+		return err
+	}
+	stmt, err := tx.Prepare("INSERT OR IGNORE INTO compounds (name, name_cn, formula, molecular_weight, cas_number, source) VALUES (?, ?, ?, ?, ?, 'local')")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	defer stmt.Close()
+
+	for _, c := range compounds {
+		if _, err := stmt.Exec(c.Name, c.NameCN, c.Formula, c.MW, c.CAS); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+// GetAllElements returns all elements ordered by atomic number.
+func (db *DB) GetAllElements() ([]ElementResult, error) {
+	rows, err := db.conn.Query(
+		"SELECT symbol, name_en, name_cn, atomic_number, atomic_mass FROM elements ORDER BY atomic_number",
 	)
 	if err != nil {
 		return nil, err

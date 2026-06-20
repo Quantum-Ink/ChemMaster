@@ -24,7 +24,7 @@
     <!-- Plugins List -->
     <div class="card">
       <div class="card-title">📦 已安装插件</div>
-      <div v-for="(p, i) in plugins" :key="i" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border);">
+      <div v-for="(p, i) in plugins" :key="i" class="plugin-item">
         <div style="display: flex; align-items: center; gap: 12px;">
           <span style="font-size: 24px;">{{ categoryIcon(p.category) }}</span>
           <div>
@@ -50,33 +50,54 @@
     <div class="card">
       <div class="card-title">📂 插件分类</div>
       <div class="chip-group">
-        <span class="chip">🔬 parser</span>
-        <span class="chip">⚖️ solver</span>
-        <span class="chip">🗄️ database</span>
-        <span class="chip">📤 export</span>
-        <span class="chip">🤖 ai</span>
+        <span class="chip" @click="filterCategory = filterCategory === 'parser' ? '' : 'parser'">
+          🔬 parser <span v-if="filterCategory === 'parser'" style="color: var(--success);">✓</span>
+        </span>
+        <span class="chip" @click="filterCategory = filterCategory === 'solver' ? '' : 'solver'">
+          ⚖️ solver <span v-if="filterCategory === 'solver'" style="color: var(--success);">✓</span>
+        </span>
+        <span class="chip" @click="filterCategory = filterCategory === 'database' ? '' : 'database'">
+          🗄️ database <span v-if="filterCategory === 'database'" style="color: var(--success);">✓</span>
+        </span>
+        <span class="chip" @click="filterCategory = filterCategory === 'export' ? '' : 'export'">
+          📤 export <span v-if="filterCategory === 'export'" style="color: var(--success);">✓</span>
+        </span>
+        <span class="chip" @click="filterCategory = filterCategory === 'ai' ? '' : 'ai'">
+          🤖 ai <span v-if="filterCategory === 'ai'" style="color: var(--success);">✓</span>
+        </span>
+      </div>
+      <div v-if="filterCategory" style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">
+        显示 {{ filteredPlugins.length }} 个 {{ filterCategory }} 插件
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { listPlugins, setPluginEnabled } from '../wails/app'
 
 const plugins = ref<any[]>([])
+const filterCategory = ref('')
+
+const filteredPlugins = computed(() => {
+  if (!filterCategory.value) return plugins.value
+  return plugins.value.filter(p => p.category === filterCategory.value)
+})
 
 onMounted(async () => {
-  plugins.value = await listPlugins() as any[]
-  if (!plugins.value.length) {
+  const result = await listPlugins() as any[]
+  if (result && result.length) {
+    plugins.value = result
+  } else {
     plugins.value = [
-      { name: 'formula-parser', version: '1.0.0', description: 'Chemical formula parser', category: 'parser', enabled: true, initialized: true },
-      { name: 'equation-balancer', version: '1.0.0', description: 'Chemical equation balancer', category: 'solver', enabled: true, initialized: true },
-      { name: 'ion-engine', version: '1.0.0', description: 'Ionic equation analyzer', category: 'solver', enabled: true, initialized: true },
-      { name: 'latex-export', version: '1.0.0', description: 'LaTeX export plugin', category: 'export', enabled: true, initialized: true },
-      { name: 'png-export', version: '1.0.0', description: 'PNG export via SVG/Canvas', category: 'export', enabled: true, initialized: true },
-      { name: 'local-database', version: '1.0.0', description: 'Local SQLite chemistry database', category: 'database', enabled: true, initialized: true },
-      { name: 'pubchem-provider', version: '1.0.0', description: 'PubChem API data provider', category: 'database', enabled: true, initialized: true },
+      { name: 'formula-parser', version: '1.0.0', description: '化学式解析引擎', category: 'parser', enabled: true, initialized: true },
+      { name: 'equation-balancer', version: '1.0.0', description: '方程式配平（矩阵法）', category: 'solver', enabled: true, initialized: true },
+      { name: 'ion-engine', version: '1.0.0', description: '离子方程式分析', category: 'solver', enabled: true, initialized: true },
+      { name: 'latex-export', version: '1.0.0', description: 'LaTeX 格式导出', category: 'export', enabled: true, initialized: true },
+      { name: 'png-export', version: '1.0.0', description: 'PNG 图片导出', category: 'export', enabled: true, initialized: true },
+      { name: 'local-database', version: '1.0.0', description: '本地 SQLite 化学数据库', category: 'database', enabled: true, initialized: true },
+      { name: 'pubchem-provider', version: '1.0.0', description: 'PubChem API 数据源', category: 'database', enabled: true, initialized: true },
     ]
   }
 })
@@ -91,3 +112,25 @@ async function togglePlugin(p: any) {
   await setPluginEnabled(p.name, p.enabled)
 }
 </script>
+
+<style scoped>
+.plugin-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.plugin-item:hover {
+  background: var(--bg-hover);
+  margin: 0 -8px;
+  padding: 14px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.plugin-item:last-child {
+  border-bottom: none;
+}
+</style>

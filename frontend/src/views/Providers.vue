@@ -2,13 +2,19 @@
   <div class="fade-in">
     <div class="page-header">
       <h1 class="page-title">🌐 数据源管理</h1>
-      <p class="page-subtitle">管理化学数据源 — 本地数据库、PubChem API、在线抓取（Clash风格）</p>
+      <p class="page-subtitle">管理化学数据源 — 本地数据库、PubChem API、在线抓取</p>
     </div>
 
     <!-- Providers List -->
     <div class="card">
       <div class="card-title">📡 数据源列表</div>
-      <div v-for="(p, i) in providers" :key="i" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+      <div
+        v-for="(p, i) in providers"
+        :key="i"
+        class="provider-item"
+        :class="{ selected: selectedProvider === i }"
+        @click="selectedProvider = i"
+      >
         <div style="display: flex; align-items: center; gap: 12px;">
           <span style="font-size: 20px;">{{ p.type === 'local' ? '🗄️' : p.type === 'api' ? '🌐' : '🔓' }}</span>
           <div>
@@ -20,8 +26,8 @@
           <span class="chip" :style="{ background: p.enabled ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)', color: p.enabled ? 'var(--success)' : 'var(--error)' }">
             {{ p.enabled ? '已启用' : '已禁用' }}
           </span>
-          <div class="toggle" :class="{ active: p.enabled }" @click="toggleProvider(i)"></div>
-          <button class="btn btn-secondary btn-sm" @click="testConnection(p)">测试连接</button>
+          <div class="toggle" :class="{ active: p.enabled }" @click.stop="toggleProvider(i)"></div>
+          <button class="btn btn-secondary btn-sm" @click.stop="testConnection(p)">测试连接</button>
         </div>
       </div>
     </div>
@@ -31,7 +37,7 @@
       <div class="card-title">🔍 跨数据源查询</div>
       <div class="input-row">
         <div class="input-group">
-          <input v-model="query" class="input-field" placeholder="输入化合物名称或化学式" @keyup.enter="search" />
+          <input v-model="query" class="input-field" placeholder="输入化合物名称或化学式，如：水、H2O、乙醇" @keyup.enter="search" />
         </div>
         <button class="btn btn-primary" @click="search">查询</button>
       </div>
@@ -70,6 +76,7 @@ import { ref, onMounted } from 'vue'
 import { listProviders, searchCompoundOnline, testProviderConnection, setProviderEnabled } from '../wails/app'
 
 const providers = ref<any[]>([])
+const selectedProvider = ref(-1)
 const query = ref('')
 const searchResults = ref<any[]>([])
 const testResult = ref('')
@@ -101,7 +108,34 @@ async function search() {
 }
 
 async function testConnection(provider: any) {
-  testResult.value = 'Testing...'
+  testResult.value = '正在测试连接...'
   testResult.value = await testProviderConnection(provider.name)
 }
 </script>
+
+<style scoped>
+.provider-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+  border-radius: var(--radius-sm);
+  margin: 0 -8px;
+}
+
+.provider-item:hover {
+  background: var(--bg-hover);
+}
+
+.provider-item.selected {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.provider-item:last-child {
+  border-bottom: none;
+}
+</style>

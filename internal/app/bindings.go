@@ -99,7 +99,7 @@ func (a *App) GetAllElements() interface{} {
 	if a.db == nil {
 		return []interface{}{}
 	}
-	results, err := a.db.SearchElements("")
+	results, err := a.db.GetAllElements()
 	if err != nil {
 		return map[string]string{"error": err.Error()}
 	}
