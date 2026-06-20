@@ -24,6 +24,7 @@ func main() {
 		Height:    800,
 		MinWidth:  960,
 		MinHeight: 600,
+		Frameless: true,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
@@ -37,9 +38,7 @@ func main() {
 			WebviewIsTransparent:              false,
 			WindowIsTranslucent:               false,
 			DisableWindowIcon:                 false,
-			DisableFramelessWindowDecorations: false,
-			WebviewUserDataPath:               "",
-			WebviewBrowserPath:                "",
+			DisableFramelessWindowDecorations: true,
 			Theme:                             windows.Dark,
 		},
 	})

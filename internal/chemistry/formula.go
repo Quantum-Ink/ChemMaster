@@ -10,11 +10,16 @@ import (
 
 // ElementData holds information about a chemical element.
 type ElementData struct {
-	Symbol       string
-	NameEN       string
-	NameCN       string
-	AtomicNumber int
-	AtomicMass   float64
+	Symbol            string
+	NameEN            string
+	NameCN            string
+	AtomicNumber      int
+	AtomicMass        float64
+	ElectronConfig    string
+	Period            int
+	Group             int
+	Category          string
+	Electronegativity float64
 }
 
 // PeriodicTable is built from database.AllElements at init time.
@@ -24,11 +29,16 @@ func init() {
 	PeriodicTable = make(map[string]ElementData, len(database.AllElements))
 	for _, e := range database.AllElements {
 		PeriodicTable[e.Symbol] = ElementData{
-			Symbol:       e.Symbol,
-			NameEN:       e.NameEN,
-			NameCN:       e.NameCN,
-			AtomicNumber: e.AtomicNumber,
-			AtomicMass:   e.AtomicMass,
+			Symbol:            e.Symbol,
+			NameEN:            e.NameEN,
+			NameCN:            e.NameCN,
+			AtomicNumber:      e.AtomicNumber,
+			AtomicMass:        e.AtomicMass,
+			ElectronConfig:    e.ElectronConfig,
+			Period:            e.Period,
+			Group:             e.Group,
+			Category:          e.Category,
+			Electronegativity: e.Electronegativity,
 		}
 	}
 }

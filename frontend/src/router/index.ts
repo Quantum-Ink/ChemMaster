@@ -6,6 +6,7 @@ const routes = [
   { path: '/equation', name: 'equation', component: () => import('../views/Equation.vue') },
   { path: '/reaction', name: 'reaction', component: () => import('../views/Reaction.vue') },
   { path: '/ion', name: 'ion', component: () => import('../views/Ion.vue') },
+  { path: '/mol-editor', name: 'mol-editor', component: () => import('../views/MolEditor.vue') },
   { path: '/database', name: 'database', component: () => import('../views/Database.vue') },
   { path: '/providers', name: 'providers', component: () => import('../views/Providers.vue') },
   { path: '/plugins', name: 'plugins', component: () => import('../views/Plugins.vue') },

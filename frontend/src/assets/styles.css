@@ -1,6 +1,6 @@
-/* ChemMaster - Dark Theme */
+/* ChemMaster Theme */
 
-:root {
+:root, [data-theme="dark"] {
   --bg-primary: #121218;
   --bg-secondary: #1a1a24;
   --bg-tertiary: #22222e;
@@ -24,12 +24,42 @@
   --border: #2a2a3a;
   --border-light: #363648;
 
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f5f5f7;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e8e8ed;
+  --bg-card: #ffffff;
+  --bg-hover: #e8e8ed;
+  --bg-active: #d1d1d6;
+
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-muted: #aeaeb2;
+
+  --accent: #5856d6;
+  --accent-hover: #4745b5;
+  --accent-dim: rgba(88, 86, 214, 0.12);
+
+  --success: #34c759;
+  --warning: #ff9500;
+  --error: #ff3b30;
+  --info: #007aff;
+
+  --border: #d1d1d6;
+  --border-light: #c7c7cc;
+
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+:root {
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
-
-  --shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
 
   --sidebar-width: 240px;
   --titlebar-height: 36px;
