@@ -36,6 +36,35 @@
           </template>
         </div>
       </div>
+
+      <!-- Lanthanide row (La-Lu) -->
+      <div class="f-block-section">
+        <div class="f-block-label">镧系元素 (La–Lu)</div>
+        <div class="f-block-row">
+          <div v-for="elem in lanthanides" :key="elem.symbol"
+            class="pt-cell lanthanide" :class="{ selected: selectedElement?.symbol === elem.symbol }"
+            @click="selectElement(elem)">
+            <div class="pt-number">{{ elem.atomicNumber }}</div>
+            <div class="pt-symbol">{{ elem.symbol }}</div>
+            <div class="pt-name">{{ elem.nameCn }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actinide row (Ac-Lr) -->
+      <div class="f-block-section">
+        <div class="f-block-label">锕系元素 (Ac–Lr)</div>
+        <div class="f-block-row">
+          <div v-for="elem in actinides" :key="elem.symbol"
+            class="pt-cell actinide" :class="{ selected: selectedElement?.symbol === elem.symbol }"
+            @click="selectElement(elem)">
+            <div class="pt-number">{{ elem.atomicNumber }}</div>
+            <div class="pt-symbol">{{ elem.symbol }}</div>
+            <div class="pt-name">{{ elem.nameCn }}</div>
+          </div>
+        </div>
+      </div>
+
       <div class="legend">
         <span class="legend-item" v-for="c in categories" :key="c.key">
           <span class="legend-dot" :style="{ background: c.color }"></span>{{ c.label }}
@@ -121,40 +150,42 @@ onMounted(async () => {
   if (all && all.length) allElements.value = all
 })
 
-// Build 18-col periodic table grid (7 periods + 2 lanthanide/actinide rows)
+// Main periodic table: exclude lanthanides (57-71) and actinides (89-103)
 const periodicGrid = computed(() => {
-  const grid: (any | null)[] = []
   const byPos: Record<string, any> = {}
   allElements.value.forEach(e => {
+    // Skip f-block from main grid — they go in separate rows
+    if (e.atomicNumber >= 57 && e.atomicNumber <= 71) return
+    if (e.atomicNumber >= 89 && e.atomicNumber <= 103) return
     byPos[`${e.period}-${e.group}`] = e
   })
-  // Periods 1-7
+  const grid: (any | null)[] = []
   for (let p = 1; p <= 7; p++) {
     for (let g = 1; g <= 18; g++) {
       const key = `${p}-${g}`
       if (byPos[key]) {
         grid.push(byPos[key])
       } else if (p === 6 && g === 3) {
-        grid.push({ symbol: 'La-Lu', nameCn: '镧系', atomicNumber: '57-71', category: 'lanthanide', isPlaceholder: true })
+        grid.push({ symbol: '57-71', nameCn: '镧系', category: 'lanthanide', isPlaceholder: true })
       } else if (p === 7 && g === 3) {
-        grid.push({ symbol: 'Ac-Lr', nameCn: '锕系', atomicNumber: '89-103', category: 'actinide', isPlaceholder: true })
+        grid.push({ symbol: '89-103', nameCn: '锕系', category: 'actinide', isPlaceholder: true })
       } else {
         grid.push(null)
       }
     }
   }
-  // Lanthanide row
-  for (let i = 57; i <= 71; i++) {
-    const e = allElements.value.find(el => el.atomicNumber === i)
-    grid.push(e || null)
-  }
-  // Actinide row
-  for (let i = 89; i <= 103; i++) {
-    const e = allElements.value.find(el => el.atomicNumber === i)
-    grid.push(e || null)
-  }
   return grid
 })
+
+// Separate lanthanide row (La-Lu, atomic numbers 57-71)
+const lanthanides = computed(() =>
+  allElements.value.filter(e => e.atomicNumber >= 57 && e.atomicNumber <= 71)
+)
+
+// Separate actinide row (Ac-Lr, atomic numbers 89-103)
+const actinides = computed(() =>
+  allElements.value.filter(e => e.atomicNumber >= 89 && e.atomicNumber <= 103)
+)
 
 const categories = [
   { key: 'alkali', label: '碱金属', color: '#f87171' },
@@ -234,6 +265,16 @@ function selectElement(elem: any) {
 .pt-cell.noble { background: rgba(244,114,182,0.12); }
 .pt-cell.lanthanide { background: rgba(129,140,248,0.12); }
 .pt-cell.actinide { background: rgba(110,231,183,0.12); }
+
+.f-block-section { margin-top: 12px; }
+.f-block-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; letter-spacing: 0.3px; }
+.f-block-row {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  gap: 2px;
+  margin-bottom: 8px;
+}
+.f-block-row .pt-cell { aspect-ratio: 1; }
 
 .legend {
   display: flex; flex-wrap: wrap; gap: 12px; font-size: 11px; color: var(--text-secondary);

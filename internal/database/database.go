@@ -37,9 +37,10 @@ func NewDB(dbPath string) (*DB, error) {
 		conn.Close()
 		return nil, fmt.Errorf("create tables: %w", err)
 	}
-	if err := db.seedData(); err != nil {
-		log.Printf("Warning: seed data error: %v", err)
+	if err := db.ensureElements(); err != nil {
+		log.Printf("Warning: element seed error: %v", err)
 	}
+	log.Printf("Database initialized at %s", dbPath)
 	return db, nil
 }
 
@@ -49,16 +50,9 @@ func (db *DB) Close() {
 	}
 }
 
+// createTables creates non-element tables. Elements are handled by ensureElements.
 func (db *DB) createTables() error {
-	// Check if elements table exists and has correct schema
-	var colCount int
-	err := db.conn.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('elements') WHERE name='electron_config'`).Scan(&colCount)
-	if err == nil && colCount == 0 {
-		// Table exists but missing new columns — drop and recreate
-		db.conn.Exec("DROP TABLE IF EXISTS elements")
-	}
-
-	_, err = db.conn.Exec(`
+	_, err := db.conn.Exec(`
 	CREATE TABLE IF NOT EXISTS elements (
 		symbol TEXT PRIMARY KEY,
 		name_en TEXT NOT NULL,
@@ -98,23 +92,26 @@ func (db *DB) createTables() error {
 	return err
 }
 
-func (db *DB) seedData() error {
-	var count int
-	if err := db.conn.QueryRow("SELECT COUNT(*) FROM elements").Scan(&count); err != nil {
-		return err
-	}
-	if count == len(AllElements) {
-		return nil
-	}
-	if count > 0 {
-		db.conn.Exec("DELETE FROM elements")
+// ensureElements ensures all 118 elements are in the database.
+// Element data is static (not user data), so we always recreate to guarantee completeness.
+func (db *DB) ensureElements() error {
+	// Always drop and recreate — element data is static, no user data to preserve
+	db.conn.Exec("DROP TABLE IF EXISTS elements")
+	if _, err := db.conn.Exec(`CREATE TABLE elements (
+		symbol TEXT PRIMARY KEY, name_en TEXT NOT NULL, name_cn TEXT NOT NULL,
+		atomic_number INTEGER NOT NULL UNIQUE, atomic_mass REAL NOT NULL,
+		electron_config TEXT DEFAULT '', period INTEGER DEFAULT 1,
+		group_num INTEGER DEFAULT 1, category TEXT DEFAULT 'nonmetal',
+		electronegativity REAL DEFAULT 0
+	)`); err != nil {
+		return fmt.Errorf("create elements table: %w", err)
 	}
 
 	tx, err := db.conn.Begin()
 	if err != nil {
 		return err
 	}
-	stmt, err := tx.Prepare(`INSERT OR IGNORE INTO elements
+	stmt, err := tx.Prepare(`INSERT INTO elements
 		(symbol, name_en, name_cn, atomic_number, atomic_mass, electron_config, period, group_num, category, electronegativity)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
@@ -125,12 +122,13 @@ func (db *DB) seedData() error {
 	for _, e := range AllElements {
 		if _, err := stmt.Exec(e.Symbol, e.NameEN, e.NameCN, e.AtomicNumber, e.AtomicMass, e.ElectronConfig, e.Period, e.Group, e.Category, e.Electronegativity); err != nil {
 			tx.Rollback()
-			return err
+			return fmt.Errorf("insert element %s: %w", e.Symbol, err)
 		}
 	}
 	if err := tx.Commit(); err != nil {
 		return err
 	}
+	log.Printf("Seeded %d elements", len(AllElements))
 	return db.seedCompounds()
 }
 
