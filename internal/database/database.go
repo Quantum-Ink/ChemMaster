@@ -10,13 +10,11 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// DB wraps the SQLite database connection.
 type DB struct {
 	conn *sql.DB
 	path string
 }
 
-// NewDB creates or opens the SQLite database.
 func NewDB(dbPath string) (*DB, error) {
 	if dbPath == "" {
 		home, _ := os.UserHomeDir()
@@ -52,7 +50,15 @@ func (db *DB) Close() {
 }
 
 func (db *DB) createTables() error {
-	_, err := db.conn.Exec(`
+	// Check if elements table exists and has correct schema
+	var colCount int
+	err := db.conn.QueryRow(`SELECT COUNT(*) FROM pragma_table_info('elements') WHERE name='electron_config'`).Scan(&colCount)
+	if err == nil && colCount == 0 {
+		// Table exists but missing new columns — drop and recreate
+		db.conn.Exec("DROP TABLE IF EXISTS elements")
+	}
+
+	_, err = db.conn.Exec(`
 	CREATE TABLE IF NOT EXISTS elements (
 		symbol TEXT PRIMARY KEY,
 		name_en TEXT NOT NULL,
@@ -98,9 +104,8 @@ func (db *DB) seedData() error {
 		return err
 	}
 	if count == len(AllElements) {
-		return nil // already seeded with full data
+		return nil
 	}
-	// Drop and re-seed if partial data (schema upgrade)
 	if count > 0 {
 		db.conn.Exec("DELETE FROM elements")
 	}
@@ -132,15 +137,15 @@ func (db *DB) seedData() error {
 // ===== Query methods =====
 
 type ElementResult struct {
-	Symbol           string  `json:"symbol"`
-	NameEN           string  `json:"nameEn"`
-	NameCN           string  `json:"nameCn"`
-	AtomicNumber     int     `json:"atomicNumber"`
-	AtomicMass       float64 `json:"atomicMass"`
-	ElectronConfig   string  `json:"electronConfig"`
-	Period           int     `json:"period"`
-	Group            int     `json:"group"`
-	Category         string  `json:"category"`
+	Symbol            string  `json:"symbol"`
+	NameEN            string  `json:"nameEn"`
+	NameCN            string  `json:"nameCn"`
+	AtomicNumber      int     `json:"atomicNumber"`
+	AtomicMass        float64 `json:"atomicMass"`
+	ElectronConfig    string  `json:"electronConfig"`
+	Period            int     `json:"period"`
+	Group             int     `json:"group"`
+	Category          string  `json:"category"`
 	Electronegativity float64 `json:"electronegativity"`
 }
 

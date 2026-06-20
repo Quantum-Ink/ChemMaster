@@ -28,7 +28,13 @@
           </router-link>
         </div>
         <div class="nav-section">
-          <div class="nav-section-title">工具</div>
+          <div class="nav-section-title">画布 & 可视化</div>
+          <router-link to="/live-equation" class="nav-item" :class="{ active: $route.path === '/live-equation' }">
+            <span class="nav-item-icon">✏️</span><span>实时方程式画布</span>
+          </router-link>
+          <router-link to="/structure" class="nav-item" :class="{ active: $route.path === '/structure' }">
+            <span class="nav-item-icon">🔮</span><span>3D 分子结构</span>
+          </router-link>
           <router-link to="/mol-editor" class="nav-item" :class="{ active: $route.path === '/mol-editor' }">
             <span class="nav-item-icon">🧬</span><span>分子编辑器</span>
           </router-link>
@@ -81,6 +87,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { getSetting } from './wails/app'
+import { WindowMinimise, WindowToggleMaximise, Quit } from './wailsjs/runtime/runtime'
 
 const currentTime = ref('')
 let timer: number
@@ -108,15 +115,9 @@ function updateTime() {
   currentTime.value = new Date().toLocaleTimeString('zh-CN', { hour12: false })
 }
 
-function windowMinimize() {
-  (window as any).runtime?.WindowMinimise()
-}
-function windowMaximize() {
-  (window as any).runtime?.WindowToggleMaximise()
-}
-function windowClose() {
-  (window as any).runtime?.WindowClose()
-}
+function windowMinimize() { WindowMinimise() }
+function windowMaximize() { WindowToggleMaximise() }
+function windowClose() { Quit() }
 </script>
 
 <style scoped>
