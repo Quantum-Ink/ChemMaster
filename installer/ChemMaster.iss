@@ -2,7 +2,7 @@
 ; Requires Inno Setup 6+ (https://jrsoftware.org/isinfo.php)
 
 #define MyAppName "ChemMaster"
-#define MyAppVersion "1.0.9"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "ChemMaster"
 #define MyAppURL "https://github.com/Quantum-Ink/ChemMaster"
 #define MyAppExeName "ChemMaster.exe"

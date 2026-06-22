@@ -62,7 +62,7 @@
 
     <div class="main-area">
       <div class="titlebar">
-        <span class="titlebar-title">ChemMaster v1.0.8</span>
+        <span class="titlebar-title">ChemMaster v1.1.0</span>
         <div class="titlebar-controls">
           <button class="titlebar-btn minimize" @click="windowMinimize">🗕</button>
           <button class="titlebar-btn maximize" @click="windowMaximize">🗖</button>
