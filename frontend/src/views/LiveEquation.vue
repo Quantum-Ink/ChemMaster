@@ -208,30 +208,20 @@ function formulaToHTML(f: string): string {
  * viewBox defines a fixed-height arrow shape; the shaft scales with container.
  */
 function buildArrowSVG(isReversible: boolean): string {
-  const sw = 1.8  // shaft stroke width
-
+  // Fixed-size arrow, viewBox 80×16, rendered at native size (no stretch)
   if (isReversible) {
-    // \rightleftharpoons style — modeled after LaTeX mhchem
-    // viewBox 0 0 200 20: top row y=7, bottom row y=13
-    const hw = 10, hh = 5   // arrowhead width & half-height
-    const y1 = 7, y2 = 13   // vertical positions
-    const topEnd = 200 - hw  // top shaft ends before right arrowhead
-    return `<svg class="eq-arrow-svg" viewBox="0 0 200 20" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">` +
-      // top: shaft → right arrowhead
-      `<line x1="0" y1="${y1}" x2="${topEnd}" y2="${y1}" stroke="currentColor" stroke-width="${sw}"/>` +
-      `<polygon points="200,${y1} ${topEnd},${y1 - hh} ${topEnd},${y1 + hh}" fill="currentColor"/>` +
-      // bottom: left arrowhead → shaft
-      `<polygon points="0,${y2} ${hw},${y2 - hh} ${hw},${y2 + hh}" fill="currentColor"/>` +
-      `<line x1="${hw}" y1="${y2}" x2="200" y2="${y2}" stroke="currentColor" stroke-width="${sw}"/>` +
+    // \rightleftharpoons: top line → right, bottom line ← left
+    return `<svg class="eq-arrow-svg" viewBox="0 0 80 16" xmlns="http://www.w3.org/2000/svg">` +
+      `<line x1="2" y1="5" x2="68" y2="5" stroke="currentColor" stroke-width="1.6"/>` +
+      `<polygon points="78,5 68,1.5 68,8.5" fill="currentColor"/>` +
+      `<polygon points="2,11 12,7.5 12,14.5" fill="currentColor"/>` +
+      `<line x1="12" y1="11" x2="78" y2="11" stroke="currentColor" stroke-width="1.6"/>` +
       `</svg>`
   }
-
-  // Single-headed → : shaft + right triangle arrowhead
-  const hw = 14, hh = 6
-  const shaftEnd = 200 - hw
-  return `<svg class="eq-arrow-svg" viewBox="0 0 200 20" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">` +
-    `<line x1="0" y1="10" x2="${shaftEnd}" y2="10" stroke="currentColor" stroke-width="${sw}"/>` +
-    `<polygon points="200,10 ${shaftEnd},${10 - hh} ${shaftEnd},${10 + hh}" fill="currentColor"/>` +
+  // Single-headed →
+  return `<svg class="eq-arrow-svg" viewBox="0 0 80 16" xmlns="http://www.w3.org/2000/svg">` +
+    `<line x1="2" y1="8" x2="64" y2="8" stroke="currentColor" stroke-width="1.6"/>` +
+    `<polygon points="78,8 64,3 64,13" fill="currentColor"/>` +
     `</svg>`
 }
 
@@ -269,8 +259,8 @@ function exportPNG(scale: number) {
   const svgNS = 'http://www.w3.org/2000/svg'
   const html = el.innerHTML
   const css = `.eq-reactants,.eq-products{font-family:'Times New Roman',serif;font-size:28px;color:#e0e0e6}
-.eq-arrow-block{display:inline-flex;flex-direction:column;align-items:center;margin:0 12px;min-width:60px}
-.eq-arrow-svg{width:100%;height:22px;color:#e0e0e6;display:block}
+.eq-arrow-block{display:inline-flex;flex-direction:column;align-items:center;margin:0 10px}
+.eq-arrow-svg{width:80px;height:16px;color:#e0e0e6;display:block;flex-shrink:0}
 .eq-cond-above,.eq-cond-below{font-size:13px;color:#6c6cf0;white-space:nowrap}
 .coeff{font-weight:600;color:#6c6cf0}
 .state{font-size:16px;color:#9090a0}
@@ -329,19 +319,19 @@ sub{font-size:0.7em}`
 }
 .equation-display :deep(.eq-arrow-block) {
   display: inline-flex; flex-direction: column; align-items: center;
-  margin: 0 12px; min-width: 60px;
+  margin: 0 10px;
 }
 .equation-display :deep(.eq-arrow-svg) {
-  width: 100%; height: 22px; color: var(--text-primary);
-  display: block;
+  width: 80px; height: 16px; color: var(--text-primary);
+  display: block; flex-shrink: 0;
 }
 .equation-display :deep(.eq-cond-above),
 .equation-display :deep(.eq-cond-below) {
   font-size: 13px; color: var(--accent); line-height: 1.3;
   white-space: nowrap;
 }
-.equation-display :deep(.eq-cond-above) { margin-bottom: 3px; }
-.equation-display :deep(.eq-cond-below) { margin-top: 3px; }
+.equation-display :deep(.eq-cond-above) { margin-bottom: 2px; }
+.equation-display :deep(.eq-cond-below) { margin-top: 2px; }
 .canvas-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .mono-input { font-family: var(--font-mono); font-size: 16px; letter-spacing: 0.5px; }
 .mono-result { font-family: var(--font-mono); word-break: break-all; }
