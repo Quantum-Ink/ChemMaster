@@ -53,7 +53,7 @@ if errorlevel 1 (
     echo [ERROR] Installer compilation failed.
     exit /b 1
 )
-echo       Done: build\installer\ChemMaster-Setup-1.0.2.exe
+echo       Done: build\installer\ChemMaster-Setup-1.0.9.exe
 echo.
 
 :end
@@ -62,8 +62,8 @@ echo  Build complete!
 echo ========================================
 echo.
 echo  Application:  build\bin\ChemMaster.exe
-if exist "build\installer\ChemMaster-Setup-1.0.2.exe" (
-    echo  Installer:    build\installer\ChemMaster-Setup-1.0.2.exe
+if exist "build\installer\ChemMaster-Setup-1.0.9.exe" (
+    echo  Installer:    build\installer\ChemMaster-Setup-1.0.9.exe
 )
 echo.
 endlocal
