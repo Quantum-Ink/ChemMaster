@@ -208,24 +208,30 @@ function formulaToHTML(f: string): string {
  * viewBox defines a fixed-height arrow shape; the shaft scales with container.
  */
 function buildArrowSVG(isReversible: boolean): string {
-  // viewBox: 0 0 200 28 — arrowhead tip at x=200, shaft from 0 to 170
-  const headW = 24, headH = 12, cy = 14, shaftY = 14, strokeW = 2
-  const shaftEnd = 200 - headW  // 176
+  const sw = 1.8  // shaft stroke width
 
   if (isReversible) {
-    // Double-headed arrow: ⇌ style — two parallel lines with opposing arrowheads
-    const y1 = 10, y2 = 18
-    return `<svg class="eq-arrow-svg" viewBox="0 0 200 28" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">` +
-      `<line x1="24" y1="${y1}" x2="176" y2="${y1}" stroke="currentColor" stroke-width="${strokeW}"/>` +
-      `<polygon points="200,${y1} 176,${y1 - 5} 176,${y1 + 5}" fill="currentColor"/>` +
-      `<line x1="24" y1="${y2}" x2="176" y2="${y2}" stroke="currentColor" stroke-width="${strokeW}"/>` +
-      `<polygon points="0,${y2} 24,${y2 - 5} 24,${y2 + 5}" fill="currentColor"/>` +
+    // \rightleftharpoons style — modeled after LaTeX mhchem
+    // viewBox 0 0 200 20: top row y=7, bottom row y=13
+    const hw = 10, hh = 5   // arrowhead width & half-height
+    const y1 = 7, y2 = 13   // vertical positions
+    const topEnd = 200 - hw  // top shaft ends before right arrowhead
+    return `<svg class="eq-arrow-svg" viewBox="0 0 200 20" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">` +
+      // top: shaft → right arrowhead
+      `<line x1="0" y1="${y1}" x2="${topEnd}" y2="${y1}" stroke="currentColor" stroke-width="${sw}"/>` +
+      `<polygon points="200,${y1} ${topEnd},${y1 - hh} ${topEnd},${y1 + hh}" fill="currentColor"/>` +
+      // bottom: left arrowhead → shaft
+      `<polygon points="0,${y2} ${hw},${y2 - hh} ${hw},${y2 + hh}" fill="currentColor"/>` +
+      `<line x1="${hw}" y1="${y2}" x2="200" y2="${y2}" stroke="currentColor" stroke-width="${sw}"/>` +
       `</svg>`
   }
-  // Single-headed arrow: → style
-  return `<svg class="eq-arrow-svg" viewBox="0 0 200 28" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">` +
-    `<line x1="0" y1="${shaftY}" x2="${shaftEnd}" y2="${shaftY}" stroke="currentColor" stroke-width="${strokeW}"/>` +
-    `<polygon points="200,${shaftY} ${shaftEnd},${shaftY - headH / 2} ${shaftEnd},${shaftY + headH / 2}" fill="currentColor"/>` +
+
+  // Single-headed → : shaft + right triangle arrowhead
+  const hw = 14, hh = 6
+  const shaftEnd = 200 - hw
+  return `<svg class="eq-arrow-svg" viewBox="0 0 200 20" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">` +
+    `<line x1="0" y1="10" x2="${shaftEnd}" y2="10" stroke="currentColor" stroke-width="${sw}"/>` +
+    `<polygon points="200,10 ${shaftEnd},${10 - hh} ${shaftEnd},${10 + hh}" fill="currentColor"/>` +
     `</svg>`
 }
 
@@ -264,7 +270,7 @@ function exportPNG(scale: number) {
   const html = el.innerHTML
   const css = `.eq-reactants,.eq-products{font-family:'Times New Roman',serif;font-size:28px;color:#e0e0e6}
 .eq-arrow-block{display:inline-flex;flex-direction:column;align-items:center;margin:0 12px;min-width:60px}
-.eq-arrow-svg{width:100%;height:24px;color:#e0e0e6;display:block}
+.eq-arrow-svg{width:100%;height:22px;color:#e0e0e6;display:block}
 .eq-cond-above,.eq-cond-below{font-size:13px;color:#6c6cf0;white-space:nowrap}
 .coeff{font-weight:600;color:#6c6cf0}
 .state{font-size:16px;color:#9090a0}
@@ -326,7 +332,7 @@ sub{font-size:0.7em}`
   margin: 0 12px; min-width: 60px;
 }
 .equation-display :deep(.eq-arrow-svg) {
-  width: 100%; height: 24px; color: var(--text-primary);
+  width: 100%; height: 22px; color: var(--text-primary);
   display: block;
 }
 .equation-display :deep(.eq-cond-above),
