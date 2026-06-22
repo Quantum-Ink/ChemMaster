@@ -62,7 +62,7 @@
 
     <div class="main-area">
       <div class="titlebar">
-        <span class="titlebar-title">ChemMaster v1.0.2</span>
+        <span class="titlebar-title">ChemMaster v1.0.8</span>
         <div class="titlebar-controls">
           <button class="titlebar-btn minimize" @click="windowMinimize">🗕</button>
           <button class="titlebar-btn maximize" @click="windowMaximize">🗖</button>
@@ -87,7 +87,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { getSetting } from './wails/app'
-import { WindowMinimise, WindowToggleMaximise, Quit } from './wailsjs/runtime/runtime'
 
 const currentTime = ref('')
 let timer: number
@@ -115,9 +114,10 @@ function updateTime() {
   currentTime.value = new Date().toLocaleTimeString('zh-CN', { hour12: false })
 }
 
-function windowMinimize() { WindowMinimise() }
-function windowMaximize() { WindowToggleMaximise() }
-function windowClose() { Quit() }
+// Safe window controls — work in Wails runtime, no-op in dev mode
+function windowMinimize() { window.runtime?.WindowMinimise?.() }
+function windowMaximize() { window.runtime?.WindowToggleMaximise?.() }
+function windowClose() { window.runtime?.Quit?.() }
 </script>
 
 <style scoped>

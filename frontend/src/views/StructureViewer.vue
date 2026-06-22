@@ -332,8 +332,17 @@ function parseCIF(text: string) {
       const fx = parseFloat(p[cols['fract_x'] ?? cols['Cartn_x'] ?? 1]) || 0
       const fy = parseFloat(p[cols['fract_y'] ?? cols['Cartn_y'] ?? 2]) || 0
       const fz = parseFloat(p[cols['fract_z'] ?? cols['Cartn_z'] ?? 3]) || 0
-      // Convert fractional to Cartesian (approximate)
-      const x = fx * cp.a, y = fy * cp.b, z = fz * cp.c
+      // Convert fractional to Cartesian using full cell parameters
+      const alphaRad = cp.alpha * Math.PI / 180
+      const betaRad = cp.beta * Math.PI / 180
+      const gammaRad = cp.gamma * Math.PI / 180
+      const cosAlpha = Math.cos(alphaRad), cosBeta = Math.cos(betaRad), cosGamma = Math.cos(gammaRad)
+      const sinGamma = Math.sin(gammaRad)
+      // Volume factor
+      const v = Math.sqrt(1 - cosAlpha*cosAlpha - cosBeta*cosBeta - cosGamma*cosGamma + 2*cosAlpha*cosBeta*cosGamma)
+      const x = cp.a * fx + cp.b * cosGamma * fy + cp.c * cosBeta * fz
+      const y = cp.b * sinGamma * fy + cp.c * (cosAlpha - cosBeta*cosGamma)/sinGamma * fz
+      const z = cp.c * v/sinGamma * fz
       newAtoms.push({ el, x: x/2 - cp.a/4, y: y/2 - cp.b/4, z: z/2 - cp.c/4 })
     }
   }

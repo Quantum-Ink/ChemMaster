@@ -45,7 +45,7 @@
       <table class="data-table">
         <tbody>
           <tr><td style="color: var(--text-secondary);">应用名称</td><td>ChemMaster</td></tr>
-          <tr><td style="color: var(--text-secondary);">版本</td><td>1.0.2</td></tr>
+          <tr><td style="color: var(--text-secondary);">版本</td><td>1.0.8</td></tr>
           <tr><td style="color: var(--text-secondary);">技术栈</td><td>Go + Wails v2 + Vue3 + TypeScript</td></tr>
           <tr><td style="color: var(--text-secondary);">数据库</td><td>SQLite</td></tr>
           <tr><td style="color: var(--text-secondary);">作者</td><td>Quantum-Ink</td></tr>

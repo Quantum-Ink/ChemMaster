@@ -2,8 +2,6 @@
 // In production: calls window.go.app.App.* (Wails v2 generated bindings)
 // In dev mode: falls back to mock implementations.
 
-import * as WailsApp from '../wailsjs/go/app/App'
-
 // Wails v2 injects window.go.app.App at runtime
 declare global {
   interface Window {
@@ -16,16 +14,31 @@ declare global {
   }
 }
 
+// Lazy-load Wails bindings — avoids crash when wailsjs/ doesn't exist (dev mode)
+let WailsApp: Record<string, (...a: any[]) => Promise<any>> | null = null
+let wailsLoadAttempted = false
+
+async function loadWailsBindings() {
+  if (wailsLoadAttempted) return WailsApp
+  wailsLoadAttempted = true
+  try {
+    WailsApp = await import('../wailsjs/go/app/App')
+  } catch {
+    WailsApp = null
+  }
+  return WailsApp
+}
+
 function hasGo(): boolean {
   return typeof window !== 'undefined' && !!window.go?.app?.App
 }
 
 // Direct wrapper — in Wails builds, uses generated bindings; in dev, returns null → falls back to mock
-function call(method: string, ...args: any[]): Promise<any> {
-  const mod = WailsApp as Record<string, (...a: any[]) => Promise<any>>
-  const fn = mod[method]
+async function call(method: string, ...args: any[]): Promise<any> {
+  const mod = await loadWailsBindings()
+  const fn = mod?.[method]
   if (fn && hasGo()) return fn(...args)
-  return Promise.resolve(null)
+  return null
 }
 
 // === Formula API ===

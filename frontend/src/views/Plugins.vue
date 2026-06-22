@@ -24,7 +24,7 @@
     <!-- Plugins List -->
     <div class="card">
       <div class="card-title">📦 已安装插件</div>
-      <div v-for="(p, i) in plugins" :key="i" class="plugin-item">
+      <div v-for="(p, i) in filteredPlugins" :key="i" class="plugin-item">
         <div style="display: flex; align-items: center; gap: 12px;">
           <span style="font-size: 24px;">{{ categoryIcon(p.category) }}</span>
           <div>

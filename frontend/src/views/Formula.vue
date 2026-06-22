@@ -34,7 +34,7 @@
         <div class="result-box result-formula">
           <template v-if="viewMode === 'subscript'">{{ result.subscript }}</template>
           <template v-else-if="viewMode === 'latex'">{{ result.latex }}</template>
-          <template v-else>{{ result.original }}</template>
+          <template v-else><span v-html="htmlFormula"></span></template>
         </div>
         <div class="export-row">
           <button class="btn btn-secondary btn-sm" @click="copy(result.subscript)">📋 复制 Unicode</button>
@@ -108,13 +108,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { parseFormula, getAllElements } from '../wails/app'
 
 const input = ref('')
 const result = ref<any>(null)
 const viewMode = ref('subscript')
 const copied = ref(false)
+
+const htmlFormula = computed(() => {
+  if (!result.value) return ''
+  const formula = result.value.original
+  // Convert formula to HTML with subscripts/superscripts
+  return formula
+    .replace(/([A-Z][a-z]?)(\d+)/g, '$1<sub>$2</sub>')
+    .replace(/\^([0-9+\-]+)/g, '<sup>$1</sup>')
+    .replace(/\(/g, '(')
+    .replace(/\)/g, ')')
+})
 
 const elementMasses: Record<string, number> = {}
 const elementNames: Record<string, string> = {}

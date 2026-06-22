@@ -13,6 +13,7 @@ const routes = [
   { path: '/providers', name: 'providers', component: () => import('../views/Providers.vue') },
   { path: '/plugins', name: 'plugins', component: () => import('../views/Plugins.vue') },
   { path: '/settings', name: 'settings', component: () => import('../views/Settings.vue') },
+  { path: '/:pathMatch(.*)*', name: 'not-found', redirect: '/' },
 ]
 
 const router = createRouter({

@@ -30,8 +30,8 @@ type BalanceResult struct {
 	Error         string   `json:"error,omitempty"`
 }
 
-// sepRegex matches reaction separators.
-var sepRegex = regexp.MustCompile(`(->|→|⟶|<=>|⇌|⇋|={1,2})`)
+// sepRegex matches reaction separators (longer patterns first to avoid partial matches).
+var sepRegex = regexp.MustCompile(`(->|→|⟶|<=>|⇌|⇋|==|={1})`)
 
 // coeffRegex matches a leading coefficient.
 var coeffRegex = regexp.MustCompile(`^(\d+)\s*(.+)$`)

@@ -2,7 +2,7 @@
   <div class="fade-in">
     <div class="page-header">
       <h1 class="page-title">⚗️ ChemMaster</h1>
-      <p class="page-subtitle">离线优先化学计算与数据库系统 · v1.0.2</p>
+      <p class="page-subtitle">离线优先化学计算与数据库系统 · v1.0.8</p>
     </div>
 
     <div class="grid-2" style="gap: 16px;">

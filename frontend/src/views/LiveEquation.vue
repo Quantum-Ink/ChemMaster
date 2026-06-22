@@ -190,8 +190,8 @@ function toLatex(eq: ParsedEq): string {
 
 // ===== HTML rendering — conditions ABOVE and BELOW arrow =====
 function formulaToHTML(f: string): string {
-  f = f.replace(/\((?:g|s|l|aq|↑|↓)\)/g, (m) => {
-    const ch = m[1] === '↑' ? '↑' : m[1] === '↓' ? '↓' : `(${m[1]})`
+  f = f.replace(/\((g|s|l|aq|↑|↓)\)/g, (_m, state) => {
+    const ch = state === '↑' ? '↑' : state === '↓' ? '↓' : `(${state})`
     return `<span class="state">${ch}</span>`
   })
   const cm = f.match(/^(\d+)(.*)/)

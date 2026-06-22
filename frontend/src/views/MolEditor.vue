@@ -138,6 +138,7 @@ const atoms = reactive<MolAtom[]>([])
 const bonds = reactive<MolBond[]>([])
 const selectedAtoms = reactive(new Set<number>())
 const drawingBond = ref<{ x1: number; y1: number; x2: number; y2: number } | null>(null)
+const canvas = ref<SVGSVGElement | null>(null)
 
 let nextId = 1
 let dragFrom: MolAtom | null = null
@@ -214,7 +215,8 @@ const latexCode = computed(() => {
 })
 
 function getSVGPos(e: MouseEvent): { x: number; y: number } {
-  const svg = document.querySelector('.mol-canvas') as SVGSVGElement
+  const svg = canvas.value
+  if (!svg) return { x: 0, y: 0 }
   const rect = svg.getBoundingClientRect()
   return { x: e.clientX - rect.left, y: e.clientY - rect.top }
 }
@@ -364,7 +366,8 @@ function loadTemplate(name: string) {
 }
 
 function getSVGString(): string {
-  const svg = document.querySelector('.mol-canvas') as SVGSVGElement
+  const svg = canvas.value
+  if (!svg) return ''
   const clone = svg.cloneNode(true) as SVGSVGElement
   // Replace CSS vars with actual colors for export
   const html = clone.outerHTML
@@ -384,19 +387,21 @@ function exportSVG() {
 
 function exportPNG(scale: number) {
   const svg = getSVGString()
-  const canvas = document.createElement('canvas')
-  const svgEl = document.querySelector('.mol-canvas') as SVGSVGElement
-  canvas.width = svgEl.clientWidth * scale
-  canvas.height = svgEl.clientHeight * scale
-  const ctx = canvas.getContext('2d')!
+  if (!svg) return
+  const exportCanvas = document.createElement('canvas')
+  const svgEl = canvas.value
+  if (!svgEl) return
+  exportCanvas.width = svgEl.clientWidth * scale
+  exportCanvas.height = svgEl.clientHeight * scale
+  const ctx = exportCanvas.getContext('2d')!
   const img = new Image()
   const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   img.onload = () => {
     ctx.fillStyle = '#121218'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-    canvas.toBlob(b => {
+    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height)
+    ctx.drawImage(img, 0, 0, exportCanvas.width, exportCanvas.height)
+    exportCanvas.toBlob(b => {
       if (b) downloadBlob(b, `molecule_${scale}x_${Date.now()}.png`)
       URL.revokeObjectURL(url)
     }, 'image/png')
