@@ -15,14 +15,15 @@ declare global {
 }
 
 // Lazy-load Wails bindings — avoids crash when wailsjs/ doesn't exist (dev mode)
-let WailsApp: Record<string, (...a: any[]) => Promise<any>> | null = null
+let WailsApp: Record<string, any> | null = null
 let wailsLoadAttempted = false
 
 async function loadWailsBindings() {
   if (wailsLoadAttempted) return WailsApp
   wailsLoadAttempted = true
   try {
-    WailsApp = await import('../wailsjs/go/app/App')
+    const mod = await import('../wailsjs/go/app/App')
+    WailsApp = mod as Record<string, any>
   } catch {
     WailsApp = null
   }
@@ -36,7 +37,7 @@ function hasGo(): boolean {
 // Direct wrapper — in Wails builds, uses generated bindings; in dev, returns null → falls back to mock
 async function call(method: string, ...args: any[]): Promise<any> {
   const mod = await loadWailsBindings()
-  const fn = mod?.[method]
+  const fn = mod?.[method] as ((...a: any[]) => Promise<any>) | undefined
   if (fn && hasGo()) return fn(...args)
   return null
 }
