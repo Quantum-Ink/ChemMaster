@@ -202,22 +202,28 @@ function formulaToHTML(f: string): string {
   return coeff + rest
 }
 
+function buildArrowHTML(isReversible: boolean, conditions: string[]): string {
+  const condAbove = conditions[0] || ''
+  const condBelow = conditions[1] || ''
+  const symbol = isReversible ? '⇌' : '→'
+
+  // Arrow: horizontal line + symbol + horizontal line, auto-stretches to fit conditions
+  const arrowLine = `<span class="eq-arrow-line"></span>`
+  const arrowBody = `${arrowLine}<span class="eq-arrow-symbol">${symbol}</span>${arrowLine}`
+
+  return `<span class="eq-arrow-block">` +
+    `<span class="eq-cond-above">${condAbove}</span>` +
+    `<span class="eq-arrow">${arrowBody}</span>` +
+    `<span class="eq-cond-below">${condBelow}</span>` +
+    `</span>`
+}
+
 function toHTML(eq: ParsedEq): string {
   const r = eq.reactants.map(formulaToHTML)
   const p = eq.products.map(formulaToHTML)
 
-  // Conditions: first above arrow, second below arrow (separated by commas)
-  const condAbove = eq.conditions[0] || ''
-  const condBelow = eq.conditions[1] || ''
-
-  const arrowSymbol = eq.isReversible ? '⇌' : '→'
-
   return `<span class="eq-reactants">${r.join(' + ')}</span>` +
-    `<span class="eq-arrow-block">` +
-      `<span class="eq-cond-above">${condAbove}</span>` +
-      `<span class="eq-arrow">${arrowSymbol}</span>` +
-      `<span class="eq-cond-below">${condBelow}</span>` +
-    `</span>` +
+    buildArrowHTML(eq.isReversible, eq.conditions) +
     `<span class="eq-products">${p.join(' + ')}</span>`
 }
 
@@ -235,9 +241,11 @@ function exportPNG(scale: number) {
   const svgNS = 'http://www.w3.org/2000/svg'
   const html = el.innerHTML
   const css = `.eq-reactants,.eq-products{font-family:'Times New Roman',serif;font-size:28px;color:#e0e0e6}
-.eq-arrow-block{display:inline-flex;flex-direction:column;align-items:center;margin:0 8px}
-.eq-arrow{font-size:28px;color:#e0e0e6}
-.eq-cond-above,.eq-cond-below{font-size:13px;color:#6c6cf0}
+.eq-arrow-block{display:inline-flex;flex-direction:column;align-items:center;margin:0 8px;min-width:40px}
+.eq-arrow{display:inline-flex;align-items:center;width:100%;font-size:28px;color:#e0e0e6;line-height:1}
+.eq-arrow-line{flex:1;height:1px;background:#e0e0e6;min-width:8px}
+.eq-arrow-symbol{padding:0 4px;flex-shrink:0}
+.eq-cond-above,.eq-cond-below{font-size:13px;color:#6c6cf0;white-space:nowrap}
 .coeff{font-weight:600;color:#6c6cf0}
 .state{font-size:16px;color:#9090a0}
 sub{font-size:0.7em}`
@@ -298,7 +306,15 @@ sub{font-size:0.7em}`
   margin: 0 8px; min-width: 40px;
 }
 .equation-display :deep(.eq-arrow) {
+  display: inline-flex; align-items: center; width: 100%;
   font-size: 28px; color: var(--text-primary); line-height: 1;
+}
+.equation-display :deep(.eq-arrow-line) {
+  flex: 1; height: 1px; background: var(--text-primary);
+  min-width: 8px;
+}
+.equation-display :deep(.eq-arrow-symbol) {
+  padding: 0 4px; flex-shrink: 0;
 }
 .equation-display :deep(.eq-cond-above),
 .equation-display :deep(.eq-cond-below) {
