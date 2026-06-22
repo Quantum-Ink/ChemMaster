@@ -202,18 +202,40 @@ function formulaToHTML(f: string): string {
   return coeff + rest
 }
 
+/**
+ * Build an SVG arrow with a proper triangle arrowhead.
+ * The SVG uses width:100% so it stretches to match the condition text width.
+ * viewBox defines a fixed-height arrow shape; the shaft scales with container.
+ */
+function buildArrowSVG(isReversible: boolean): string {
+  // viewBox: 0 0 200 28 — arrowhead tip at x=200, shaft from 0 to 170
+  const headW = 24, headH = 12, cy = 14, shaftY = 14, strokeW = 2
+  const shaftEnd = 200 - headW  // 176
+
+  if (isReversible) {
+    // Double-headed arrow: ⇌ style — two parallel lines with opposing arrowheads
+    const y1 = 10, y2 = 18
+    return `<svg class="eq-arrow-svg" viewBox="0 0 200 28" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">` +
+      `<line x1="24" y1="${y1}" x2="176" y2="${y1}" stroke="currentColor" stroke-width="${strokeW}"/>` +
+      `<polygon points="200,${y1} 176,${y1 - 5} 176,${y1 + 5}" fill="currentColor"/>` +
+      `<line x1="24" y1="${y2}" x2="176" y2="${y2}" stroke="currentColor" stroke-width="${strokeW}"/>` +
+      `<polygon points="0,${y2} 24,${y2 - 5} 24,${y2 + 5}" fill="currentColor"/>` +
+      `</svg>`
+  }
+  // Single-headed arrow: → style
+  return `<svg class="eq-arrow-svg" viewBox="0 0 200 28" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">` +
+    `<line x1="0" y1="${shaftY}" x2="${shaftEnd}" y2="${shaftY}" stroke="currentColor" stroke-width="${strokeW}"/>` +
+    `<polygon points="200,${shaftY} ${shaftEnd},${shaftY - headH / 2} ${shaftEnd},${shaftY + headH / 2}" fill="currentColor"/>` +
+    `</svg>`
+}
+
 function buildArrowHTML(isReversible: boolean, conditions: string[]): string {
   const condAbove = conditions[0] || ''
   const condBelow = conditions[1] || ''
-  const symbol = isReversible ? '⇌' : '→'
-
-  // Arrow: horizontal line + symbol + horizontal line, auto-stretches to fit conditions
-  const arrowLine = `<span class="eq-arrow-line"></span>`
-  const arrowBody = `${arrowLine}<span class="eq-arrow-symbol">${symbol}</span>${arrowLine}`
 
   return `<span class="eq-arrow-block">` +
     `<span class="eq-cond-above">${condAbove}</span>` +
-    `<span class="eq-arrow">${arrowBody}</span>` +
+    buildArrowSVG(isReversible) +
     `<span class="eq-cond-below">${condBelow}</span>` +
     `</span>`
 }
@@ -241,10 +263,8 @@ function exportPNG(scale: number) {
   const svgNS = 'http://www.w3.org/2000/svg'
   const html = el.innerHTML
   const css = `.eq-reactants,.eq-products{font-family:'Times New Roman',serif;font-size:28px;color:#e0e0e6}
-.eq-arrow-block{display:inline-flex;flex-direction:column;align-items:center;margin:0 8px;min-width:40px}
-.eq-arrow{display:inline-flex;align-items:center;width:100%;font-size:28px;color:#e0e0e6;line-height:1}
-.eq-arrow-line{flex:1;height:1px;background:#e0e0e6;min-width:8px}
-.eq-arrow-symbol{padding:0 4px;flex-shrink:0}
+.eq-arrow-block{display:inline-flex;flex-direction:column;align-items:center;margin:0 12px;min-width:60px}
+.eq-arrow-svg{width:100%;height:24px;color:#e0e0e6;display:block}
 .eq-cond-above,.eq-cond-below{font-size:13px;color:#6c6cf0;white-space:nowrap}
 .coeff{font-weight:600;color:#6c6cf0}
 .state{font-size:16px;color:#9090a0}
@@ -303,26 +323,19 @@ sub{font-size:0.7em}`
 }
 .equation-display :deep(.eq-arrow-block) {
   display: inline-flex; flex-direction: column; align-items: center;
-  margin: 0 8px; min-width: 40px;
+  margin: 0 12px; min-width: 60px;
 }
-.equation-display :deep(.eq-arrow) {
-  display: inline-flex; align-items: center; width: 100%;
-  font-size: 28px; color: var(--text-primary); line-height: 1;
-}
-.equation-display :deep(.eq-arrow-line) {
-  flex: 1; height: 1px; background: var(--text-primary);
-  min-width: 8px;
-}
-.equation-display :deep(.eq-arrow-symbol) {
-  padding: 0 4px; flex-shrink: 0;
+.equation-display :deep(.eq-arrow-svg) {
+  width: 100%; height: 24px; color: var(--text-primary);
+  display: block;
 }
 .equation-display :deep(.eq-cond-above),
 .equation-display :deep(.eq-cond-below) {
-  font-size: 13px; color: var(--accent); line-height: 1.2;
+  font-size: 13px; color: var(--accent); line-height: 1.3;
   white-space: nowrap;
 }
-.equation-display :deep(.eq-cond-above) { margin-bottom: 2px; }
-.equation-display :deep(.eq-cond-below) { margin-top: 2px; }
+.equation-display :deep(.eq-cond-above) { margin-bottom: 3px; }
+.equation-display :deep(.eq-cond-below) { margin-top: 3px; }
 .canvas-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 .mono-input { font-family: var(--font-mono); font-size: 16px; letter-spacing: 0.5px; }
 .mono-result { font-family: var(--font-mono); word-break: break-all; }
